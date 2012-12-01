@@ -1,5 +1,5 @@
 --[[
-  - VERSION: 1.6.12
+  - VERSION: 1.6.13
 
   - WonderRep: Adds all sorts of functionality for reputation changes!
 ]]
@@ -59,7 +59,7 @@ function WonderRep_OnLoad(self)
 
   -- Printing Message in Chat Frame
   if (DEFAULT_CHAT_FRAME) then
-    ChatFrame1:AddMessage("WonderRep Loaded! Version: 1.6.12", 1, 1, 0)
+    ChatFrame1:AddMessage("WonderRep Loaded! Version: 1.6.13", 1, 1, 0)
   end
 
   WonderRep_OnLoad = nil
@@ -177,8 +177,13 @@ function WonderRep_OnEvent(self, event, ...)
               end
             end
           end
+          local AmountGainHold2 = 1
           for AmountGainHold in string.gmatch(arg1, "%d+")  do
             AmountGainHold2 = AmountGainHold
+          end
+          -- TODO: Fix this hack
+          if AmountGainHold2 == 0 then
+            AmountGainHold2 = 1
           end
           local RepLeftToLevel = topValue1 - earnedValue1
           local KillsToNext = RepLeftToLevel / AmountGainHold2
