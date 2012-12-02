@@ -1,5 +1,5 @@
 --[[
-  - VERSION: 1.6.13
+  - VERSION: 1.6.14
 
   - WonderRep: Adds all sorts of functionality for reputation changes!
 ]]
@@ -59,7 +59,7 @@ function WonderRep_OnLoad(self)
 
   -- Printing Message in Chat Frame
   if (DEFAULT_CHAT_FRAME) then
-    ChatFrame1:AddMessage("WonderRep Loaded! Version: 1.6.13", 1, 1, 0)
+    ChatFrame1:AddMessage("WonderRep Loaded! Version: 1.6.14", 1, 1, 0)
   end
 
   WonderRep_OnLoad = nil
@@ -167,7 +167,7 @@ function WonderRep_OnEvent(self, event, ...)
         name, index, minD, maxD, current = GetWatchedFactionInfo()
         name1, description1, standingId1, bottomValue1, topValue1, earnedValue1, atWarWith1, canToggleAtWar1, isHeader1, isCollapsed1, isWatched1 = GetFactionInfo(RepIndex)
 
-        if (not isHeader1) then
+        --if (not isHeader1) then
           if (RepKilledMessage ~= name) then
             WRep.AmountGainedHold = 0
             if (Wr_save.ChangeBar == true) then
@@ -227,7 +227,7 @@ function WonderRep_OnEvent(self, event, ...)
           if (WRep.AmountGainedHold >= WRep.AmountGainedLevel) then
             WRep.AmountGainedHold = 0
           end
-        end
+        --end
       else
         WRep.frame:AddMessage("Brand new faction detected!", WRep.Color.a, WRep.Color.b, WRep.Color.c)
       end
