@@ -1,5 +1,5 @@
 --[[
-  - VERSION: 1.6.15
+  - VERSION: 1.6.16
 
   - WonderRep: Adds all sorts of functionality for reputation changes!
 ]]
@@ -7,11 +7,6 @@
 ------------
 -- Global Vars, and strings
 ------------
-SECONDSABBR = "s"
-MINUTESABBR = "m"
-HOURSABBR = "h"
-DAYSABBR = "d"
-
 WRep = {
   defaultframe = "ChatFrame1",
   Units = {
@@ -59,7 +54,7 @@ function WonderRep_OnLoad(self)
 
   -- Printing Message in Chat Frame
   if (DEFAULT_CHAT_FRAME) then
-    ChatFrame1:AddMessage("WonderRep Loaded! Version: 1.6.15", 1, 1, 0)
+    ChatFrame1:AddMessage("WonderRep Loaded! Version: 1.6.16", 1, 1, 0)
   end
 
   WonderRep_OnLoad = nil
@@ -74,14 +69,12 @@ function WonderRep_OnEvent(self, event, ...)
   local RepKilledMessage = "empty"
   local RepIndex = 0
   local GainLoss = "empty"
-  local HasIndexStart = 0
-  local HasIndexStop = 0
   local Repnamename = "ahh"
   local name = "empty"
   local arg1, arg2 = ...
 
   if (event == "VARIABLES_LOADED") then
-    Wrl = {}
+    local Wrl = {}
     if (not Wr_version) then
       Wr_version = 150
     end
@@ -136,12 +129,14 @@ function WonderRep_OnEvent(self, event, ...)
 
     local factionIndex = 1
     local lastFactionName
+
+    -- update known factions
     repeat
       local name, description, standingId, bottomValue, topValue, earnedValue, atWarWith,
         canToggleAtWar, isHeader, isCollapsed, hasRep, isWatched, isChild = GetFactionInfo(factionIndex)
       if name == lastFactionName then break end
       lastFactionName = name
-      if (name and hasRep) then
+      if (name) then
         if (not Wrl[name]) then
           Wrl[name] = {
             gained = 0
@@ -151,14 +146,17 @@ function WonderRep_OnEvent(self, event, ...)
       factionIndex = factionIndex + 1
     until factionIndex > 200
 
+    -- Don't process reputation level changes
     if (RepError == nil) then
       -- Check to see if the reputation is gained or lost, if lost quits
       for GainLoss in string.gmatch(arg1, "decreased") do
         return
       end
+
       -- This code first finds where 'has' is in the string then,
       -- Gets the Substring (rep name) between With ... Has
-      HasIndexStart, HasIndexStop = string.find(arg1, 'increased')
+      local HasIndexStart, HasIndexStop = string.find(arg1, 'increased')
+
       RepKilledMessage = string.sub(arg1, 17, HasIndexStart - 2)
       -- Using the string we just made, sending to Match function
       RepIndex = WonderRep_GetRepMatch(RepKilledMessage)
@@ -167,66 +165,61 @@ function WonderRep_OnEvent(self, event, ...)
         name, index, minD, maxD, current = GetWatchedFactionInfo()
         local name1, description1, standingId1, bottomValue1, topValue1, earnedValue1, atWarWith1, canToggleAtWar1, isHeader1, isCollapsed1, hasRep1, isWatched1, isChild1 = GetFactionInfo(RepIndex)
 
-        if (hasRep1) then
-          if (RepKilledMessage ~= name) then
-            WRep.AmountGainedHold = 0
-            if (Wr_save.ChangeBar == true) then
-              SetWatchedFactionIndex(RepIndex)
-              if (Wr_save.RepChange == true) then
-                WRep.frame:AddMessage("WonderRep: Reputation Bar changed to: "..RepKilledMessage..".", WRep.Color.a, WRep.Color.b, WRep.Color.c)
-              end
+        if (RepKilledMessage ~= name) then
+          WRep.AmountGainedHold = 0
+          if (Wr_save.ChangeBar == true) then
+            SetWatchedFactionIndex(RepIndex)
+            if (Wr_save.RepChange == true) then
+              WRep.frame:AddMessage("WonderRep: Reputation Bar changed to: "..RepKilledMessage..".", WRep.Color.a, WRep.Color.b, WRep.Color.c)
             end
           end
-          local AmountGainHold2 = 1
-          for AmountGainHold in string.gmatch(arg1, "%d+")  do
-            AmountGainHold2 = AmountGainHold
-          end
-          -- TODO: Fix this hack
-          if AmountGainHold2 == 0 then
-            AmountGainHold2 = 1
-          end
-          local RepLeftToLevel = topValue1 - earnedValue1
-          local KillsToNext = RepLeftToLevel / AmountGainHold2
-          Wrl[name1].gained = Wrl[name1].gained + AmountGainHold2
-          WRep.AmountGainedHold = WRep.AmountGainedHold + AmountGainHold2
-          if (WRep.AmountGainedHold >= WRep.AmountGainedLevel) then
-            if (Wr_save.AnnounceLeft == true and Wr_save.ATimeLeft == true) then
-              local RepLeftToLevel = topValue1 - earnedValue1
-              local hold = standingId1 + 1
-              HoldRepGained = Wrl[name1].gained
-              EstimatedTimeTolevel = RepLeftToLevel / (HoldRepGained / WRep.SessionTime)
-              KillsToNext = floor(KillsToNext + .5)
-              if (hold <= 8) then
-                RepNextLevelName = WRep.Units[hold]
-              else
-                RepNextLevelName = ""
-              end
-              WRep.frame:AddMessage("WonderRep: "..RepLeftToLevel.." reputation with "..RepKilledMessage.." needed for "..RepNextLevelName..". ("..KillsToNext.." reputation gains left) A total of "..HoldRepGained.." reputation gained this session. "..WonderRep_TimeText(EstimatedTimeTolevel).." estimated time to "..RepNextLevelName..".", WRep.Color.a, WRep.Color.b, WRep.Color.c)
-            elseif (Wr_save.AnnounceLeft == true) then
-              local RepLeftToLevel = topValue1 - earnedValue1
-              local hold = standingId1 + 1
-              if (hold <= 8) then
-                RepNextLevelName = WRep.Units[hold]
-              else
-                RepNextLevelName = ""
-              end
-              WRep.frame:AddMessage("WonderRep: "..RepLeftToLevel.." reputation with "..RepKilledMessage.." needed for "..RepNextLevelName..". ("..KillsToNext.." reputation gains left)", WRep.Color.a, WRep.Color.b, WRep.Color.c)
-            elseif (Wr_save.ATimeLeft == true) then
-              local RepLeftToLevel = topValue1 - earnedValue1
-              local hold = standingId1 + 1
-              if (hold <= 8) then
-                RepNextLevelName = WRep.Units[hold]
-              else
-                RepNextLevelName = ""
-              end
-              HoldRepGained = Wrl[name1].gained
-              EstimatedTimeTolevel = RepLeftToLevel / (HoldRepGained / WRep.SessionTime)
-              WRep.frame:AddMessage("WonderRep: "..HoldRepGained.." reputation with "..RepKilledMessage.." gained this session. "..WonderRep_TimeText(EstimatedTimeTolevel).." estimated time to "..RepNextLevelName..".", WRep.Color.a, WRep.Color.b, WRep.Color.c)
+        end
+        local AmountGainHold2 = 1
+        for AmountGainHold in string.gmatch(arg1, "%d+")  do
+          AmountGainHold2 = AmountGainHold
+          break
+        end
+        local RepLeftToLevel = topValue1 - earnedValue1
+        local KillsToNext = RepLeftToLevel / AmountGainHold2
+        Wrl[name1].gained = Wrl[name1].gained + AmountGainHold2
+        WRep.AmountGainedHold = WRep.AmountGainedHold + AmountGainHold2
+        if (WRep.AmountGainedHold >= WRep.AmountGainedLevel) then
+          if (Wr_save.AnnounceLeft == true and Wr_save.ATimeLeft == true) then
+            local RepLeftToLevel = topValue1 - earnedValue1
+            local hold = standingId1 + 1
+            HoldRepGained = Wrl[name1].gained
+            EstimatedTimeTolevel = RepLeftToLevel / (HoldRepGained / WRep.SessionTime)
+            KillsToNext = floor(KillsToNext + .5)
+            if (hold <= 8) then
+              RepNextLevelName = WRep.Units[hold]
+            else
+              RepNextLevelName = ""
             end
+            WRep.frame:AddMessage("WonderRep: "..RepLeftToLevel.." reputation with "..RepKilledMessage.." needed for "..RepNextLevelName..". ("..KillsToNext.." reputation gains left) A total of "..HoldRepGained.." reputation gained this session. "..WonderRep_TimeText(EstimatedTimeTolevel).." estimated time to "..RepNextLevelName..".", WRep.Color.a, WRep.Color.b, WRep.Color.c)
+          elseif (Wr_save.AnnounceLeft == true) then
+            local RepLeftToLevel = topValue1 - earnedValue1
+            local hold = standingId1 + 1
+            if (hold <= 8) then
+              RepNextLevelName = WRep.Units[hold]
+            else
+              RepNextLevelName = ""
+            end
+            WRep.frame:AddMessage("WonderRep: "..RepLeftToLevel.." reputation with "..RepKilledMessage.." needed for "..RepNextLevelName..". ("..KillsToNext.." reputation gains left)", WRep.Color.a, WRep.Color.b, WRep.Color.c)
+          elseif (Wr_save.ATimeLeft == true) then
+            local RepLeftToLevel = topValue1 - earnedValue1
+            local hold = standingId1 + 1
+            if (hold <= 8) then
+              RepNextLevelName = WRep.Units[hold]
+            else
+              RepNextLevelName = ""
+            end
+            HoldRepGained = Wrl[name1].gained
+            EstimatedTimeTolevel = RepLeftToLevel / (HoldRepGained / WRep.SessionTime)
+            WRep.frame:AddMessage("WonderRep: "..HoldRepGained.." reputation with "..RepKilledMessage.." gained this session. "..WonderRep_TimeText(EstimatedTimeTolevel).." estimated time to "..RepNextLevelName..".", WRep.Color.a, WRep.Color.b, WRep.Color.c)
           end
-          if (WRep.AmountGainedHold >= WRep.AmountGainedLevel) then
-            WRep.AmountGainedHold = 0
-          end
+        end
+        if (WRep.AmountGainedHold >= WRep.AmountGainedLevel) then
+          WRep.AmountGainedHold = 0
         end
       else
         WRep.frame:AddMessage("Brand new faction detected!", WRep.Color.a, WRep.Color.b, WRep.Color.c)
@@ -257,7 +250,7 @@ function WonderRep_OnEvent(self, event, ...)
             if (HordeOrAlliance == "Horde") then
               RepKilledMessage = "The Defilers"
               RepIndex = WonderRep_GetRepMatch(RepKilledMessage)
-              name1, description1, standingId1, bottomValue1, topValue1, earnedValue1, atWarWith1, canToggleAtWar1, isHeader1, isCollapsed1, isWatched1 = GetFactionInfo(RepIndex)
+              local name1, description1, standingId1, bottomValue1, topValue1, earnedValue1, atWarWith1, canToggleAtWar1, isHeader1, isCollapsed1, hasRep1, isWatched1, isChild1 = GetFactionInfo(RepIndex)
               if (standingId1 == 8) then
                 return
               end
@@ -269,7 +262,7 @@ function WonderRep_OnEvent(self, event, ...)
             else
               RepKilledMessage = "The League of Arathor"
               RepIndex = WonderRep_GetRepMatch(RepKilledMessage)
-              name1, description1, standingId1, bottomValue1, topValue1, earnedValue1, atWarWith1, canToggleAtWar1, isHeader1, isCollapsed1, isWatched1 = GetFactionInfo(RepIndex)
+              local name1, description1, standingId1, bottomValue1, topValue1, earnedValue1, atWarWith1, canToggleAtWar1, isHeader1, isCollapsed1, hasRep1, isWatched1, isChild1 = GetFactionInfo(RepIndex)
               if (standingId1 == 8) then
                 return
               end
@@ -283,7 +276,7 @@ function WonderRep_OnEvent(self, event, ...)
             if (HordeOrAlliance == "Horde") then
               RepKilledMessage = "Warsong Outriders"
               RepIndex = WonderRep_GetRepMatch(RepKilledMessage)
-              name1, description1, standingId1, bottomValue1, topValue1, earnedValue1, atWarWith1, canToggleAtWar1, isHeader1, isCollapsed1, isWatched1 = GetFactionInfo(RepIndex)
+              local name1, description1, standingId1, bottomValue1, topValue1, earnedValue1, atWarWith1, canToggleAtWar1, isHeader1, isCollapsed1, hasRep1, isWatched1, isChild1 = GetFactionInfo(RepIndex)
               if (standingId1 == 8) then
                 return
               end
@@ -295,7 +288,7 @@ function WonderRep_OnEvent(self, event, ...)
             else
               RepKilledMessage = "Silverwing Sentinels"
               RepIndex = WonderRep_GetRepMatch(RepKilledMessage)
-              name1, description1, standingId1, bottomValue1, topValue1, earnedValue1, atWarWith1, canToggleAtWar1, isHeader1, isCollapsed1, isWatched1 = GetFactionInfo(RepIndex)
+              local name1, description1, standingId1, bottomValue1, topValue1, earnedValue1, atWarWith1, canToggleAtWar1, isHeader1, isCollapsed1, hasRep1, isWatched1, isChild1 = GetFactionInfo(RepIndex)
               if (standingId1 == 8) then
                 return
               end
@@ -347,7 +340,7 @@ function WonderRep_OnEvent(self, event, ...)
       if (InstanceName == "Zul'Gurub") then
         RepKilledMessage = "Zandalar Tribe"
         RepIndex = WonderRep_GetRepMatch(RepKilledMessage)
-        name1, description1, standingId1, bottomValue1, topValue1, earnedValue1, atWarWith1, canToggleAtWar1, isHeader1, isCollapsed1, isWatched1 = GetFactionInfo(RepIndex)
+        local name1, description1, standingId1, bottomValue1, topValue1, earnedValue1, atWarWith1, canToggleAtWar1, isHeader1, isCollapsed1, hasRep1, isWatched1, isChild1 = GetFactionInfo(RepIndex)
         if (standingId1 == 8) then
           return
         end
@@ -360,7 +353,7 @@ function WonderRep_OnEvent(self, event, ...)
       if (InstanceName == "Stratholme") then
         RepKilledMessage = "Argent Dawn"
         RepIndex = WonderRep_GetRepMatch(RepKilledMessage)
-        name1, description1, standingId1, bottomValue1, topValue1, earnedValue1, atWarWith1, canToggleAtWar1, isHeader1, isCollapsed1, isWatched1 = GetFactionInfo(RepIndex)
+        local name1, description1, standingId1, bottomValue1, topValue1, earnedValue1, atWarWith1, canToggleAtWar1, isHeader1, isCollapsed1, hasRep1, isWatched1, isChild1 = GetFactionInfo(RepIndex)
         if (standingId1 == 8) then
           return
         end
@@ -373,7 +366,7 @@ function WonderRep_OnEvent(self, event, ...)
       if (InstanceName == "Naxxramas") then
         RepKilledMessage = "Argent Dawn"
         RepIndex = WonderRep_GetRepMatch(RepKilledMessage)
-        name1, description1, standingId1, bottomValue1, topValue1, earnedValue1, atWarWith1, canToggleAtWar1, isHeader1, isCollapsed1, isWatched1 = GetFactionInfo(RepIndex)
+        local name1, description1, standingId1, bottomValue1, topValue1, earnedValue1, atWarWith1, canToggleAtWar1, isHeader1, isCollapsed1, hasRep1, isWatched1, isChild1 = GetFactionInfo(RepIndex)
         if (standingId1 == 8) then
           return
         end
@@ -391,8 +384,6 @@ end
 -- Reputation pharsing and math function
 ------------
 function WonderRep_GetRepMatch(RepKilledMessage)
-  local RepCheck = "empty"
-
   local factionIndex = 1
   local lastFactionName
   repeat
@@ -476,15 +467,17 @@ function WonderRep_TimeText(s)
 
   local timeText = ""
   if (days ~= 0) then
-    timeText = timeText..format("%d"..DAYSABBR.." ", days)
+    timeText = timeText..format("%dd ", days)
   end
-  if (days ~= 0 or hours ~= 0) then
-    timeText = timeText..format("%d"..HOURSABBR.." ", hours)
+  if (hours ~= 0) then
+    timeText = timeText..format("%dh ", hours)
   end
-  if (days ~= 0 or hours ~= 0 or minutes ~= 0) then
-    timeText = timeText..format("%d"..MINUTESABBR.." ", minutes)
+  if (minutes ~= 0) then
+    timeText = timeText..format("%dm ", minutes)
   end
-  timeText = timeText..format("%d"..SECONDSABBR, seconds)
+  if (seconds ~= 0) then
+    timeText = timeText..format("%ds", seconds)
+  end
 
   return timeText
 end
