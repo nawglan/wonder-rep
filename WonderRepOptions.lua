@@ -13,7 +13,7 @@ local WONDERREP_COLOR_DROPDOWN_LIST = {
 }
 
 function WonderRepOptions_AnnounceToggle()
-  if (Wr_save.AnnounceLeft) then
+  if Wr_save.AnnounceLeft then
     Wr_save.AnnounceLeft = false
   else
     Wr_save.AnnounceLeft = true
@@ -22,7 +22,7 @@ function WonderRepOptions_AnnounceToggle()
 end
 
 function WonderRepOptions_AutoBarToggle()
-  if (Wr_save.ChangeBar) then
+  if Wr_save.ChangeBar then
     Wr_save.ChangeBar = false
   else
     Wr_save.ChangeBar = true
@@ -31,7 +31,7 @@ function WonderRepOptions_AutoBarToggle()
 end
 
 function WonderRepOptions_BarChangeToggle()
-  if (Wr_save.RepChange) then
+  if Wr_save.RepChange then
     Wr_save.RepChange = false
   else
     Wr_save.RepChange = true
@@ -40,7 +40,7 @@ function WonderRepOptions_BarChangeToggle()
 end
 
 function WonderRepOptions_ChatToggle()
-  if (Wr_save.frame) then
+  if Wr_save.frame then
     WRep.frame = _G["ChatFrame2"]
     Wr_save.frame = false
   else
@@ -51,7 +51,7 @@ function WonderRepOptions_ChatToggle()
 end
 
 function WonderRepOptions_TimeToggle()
-  if (Wr_save.ATimeLeft) then
+  if Wr_save.ATimeLeft then
     Wr_save.ATimeLeft = false
   else
     Wr_save.ATimeLeft = true
@@ -60,7 +60,7 @@ function WonderRepOptions_TimeToggle()
 end
 
 function WonderRepOptions_Toggle()
-  if (WonderRepOptionsFrame:IsVisible()) then
+  if WonderRepOptionsFrame:IsVisible() then
     WonderRepOptionsFrame:Hide()
     Wr_Status()
   else
@@ -98,35 +98,35 @@ end
 function WonderRepOptionsColorDropDown_OnClick(self)
   UIDropDownMenu_SetSelectedID(WonderRepOptionsColorDropDown, Wr_save.Color.id)
   local id = self:GetID()
-  if (id == 1) then
+  if id == 1 then
     WRep.Color.R = 1
     WRep.Color.G = 0
     WRep.Color.B = 0
-  elseif (id == 2) then
+  elseif id == 2 then
     WRep.Color.R = 0
     WRep.Color.G = 1
     WRep.Color.B = 0
-  elseif (id == 3) then
+  elseif id == 3 then
     WRep.Color.R = .3
     WRep.Color.G = .8
     WRep.Color.B = .5
-  elseif (id == 4) then
+  elseif id == 4 then
     WRep.Color.R = 1
     WRep.Color.G = 1
     WRep.Color.B = 0
-  elseif (id == 5) then
+  elseif id == 5 then
     WRep.Color.R = 1
     WRep.Color.G = .61
     WRep.Color.B = 0
-  elseif (id == 6) then
+  elseif id == 6 then
     WRep.Color.R = 0
     WRep.Color.G = 0
     WRep.Color.B = 1
-  elseif (id == 7) then
+  elseif id == 7 then
     WRep.Color.R = .4
     WRep.Color.G = 0
     WRep.Color.B = .6
-  elseif (id == 8) then
+  elseif id == 8 then
     WRep.Color.R = 0
     WRep.Color.G = 1
     WRep.Color.B = 1

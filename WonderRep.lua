@@ -1,5 +1,5 @@
 --[[
-  - VERSION: 1.6.17
+  - VERSION: 1.6.18
 
   - WonderRep: Adds all sorts of functionality for reputation changes!
 ]]
@@ -62,8 +62,8 @@ function WonderRep_OnLoad(self)
   end
 
   -- Printing Message in Chat Frame
-  if (DEFAULT_CHAT_FRAME) then
-    ChatFrame1:AddMessage("WonderRep Loaded! Version: 1.6.17", 1, 1, 0)
+  if DEFAULT_CHAT_FRAME then
+    ChatFrame1:AddMessage("WonderRep Loaded! Version: 1.6.18", 1, 1, 0)
   end
 
   -- Don't let this function run more than once
@@ -79,8 +79,8 @@ function WonderRep_UpdateFactions()
     local name = GetFactionInfo(factionIndex)
     if name == lastFactionName then break end
     lastFactionName = name
-    if (name) then
-      if (not Wrl[name]) then
+    if name then
+      if not Wrl[name] then
         Wrl[name] = {
           gained = 0
         }
@@ -91,11 +91,11 @@ function WonderRep_UpdateFactions()
 end
 
 function WonderRep_LoadSavedVars()
-  if (not Wr_version) then
+  if not Wr_version then
     Wr_version = 170
   end
 
-  if (not Wr_save) then
+  if not Wr_save then
     Wr_save = {
       AnnounceLeft = true,
       RepChange = true,
@@ -113,7 +113,7 @@ function WonderRep_LoadSavedVars()
     ChatFrame1:AddMessage("NEW LOAD, default values set!", 1, 1, 0)
   end
 
-  if (Wr_version ~= 170) then
+  if Wr_version ~= 170 then
     Wr_save.ATimeLeft = true
     Wr_save.AmountGainedInterval = Wr_save.AmountGainedLevel
     Wr_save.Color = {
@@ -125,7 +125,7 @@ function WonderRep_LoadSavedVars()
     Wr_version = 170
   end
 
-  if (Wr_save.frame) then
+  if Wr_save.frame then
     WRep.frame = _G["ChatFrame1"]
   else
     WRep.frame = _G["ChatFrame2"]
@@ -146,19 +146,20 @@ end
 function WonderRep_OnEvent(self, event, ...)
   local arg1 = ...
 
-  if (event == "VARIABLES_LOADED") then
+  if event == "VARIABLES_LOADED" then
     WonderRep_LoadSavedVars()
+    return
   end
 
   -- Event fired when the player gets, or loses, rep in the chat frame
-  if (event == "CHAT_MSG_COMBAT_FACTION_CHANGE") then
+  if event == "CHAT_MSG_COMBAT_FACTION_CHANGE" then
     WonderRep_UpdateFactions()
 
     -- This is set to hopefully stop an error when Reputation LEVEL changes
     local RepError, RepError2 = string.find(arg1, "Your")
 
     -- Don't process reputation level changes
-    if (RepError ~= nil) then
+    if RepError ~= nil then
       return
     end
 
@@ -176,13 +177,13 @@ function WonderRep_OnEvent(self, event, ...)
     local RepIndex, standingId, topValue, earnedValue = WonderRep_GetRepMatch(FactionName)
     local watchedName = GetWatchedFactionInfo()
 
-    if (RepIndex ~= nil) then
+    if RepIndex ~= nil then
       -- Changes Rep bar to the rep we matched above
-      if (FactionName ~= watchedName) then
+      if FactionName ~= watchedName then
         WRep.AmountGained = 0
-        if (Wr_save.ChangeBar == true) then
+        if Wr_save.ChangeBar == true then
           SetWatchedFactionIndex(RepIndex)
-          if (Wr_save.RepChange == true) then
+          if Wr_save.RepChange == true then
             WRep.frame:AddMessage("WonderRep: Reputation Bar changed to: " .. FactionName .. ".", WRep.Color.R, WRep.Color.G, WRep.Color.B)
           end
         end
@@ -200,11 +201,18 @@ function WonderRep_OnEvent(self, event, ...)
       WRep.AmountGained = WRep.AmountGained + factionIncreasedBy
 
       -- Have we gained more rep than the reporting level?
-      if (WRep.AmountGained >= WRep.AmountGainedInterval) then
+      if WRep.AmountGained >= WRep.AmountGainedInterval then
         local nextStandingId = standingId + 1
         local RepNextLevelName = WonderRep_GetNextRepLevelName(FactionName, nextStandingId)
+        --WRep.frame:AddMessage("DEBUG: " .. topValue .. "," .. earnedValue)
         local RepGained = Wrl[FactionName].gained
-        local RepLeftToLevel = topValue - earnedValue
+        local RepLeftToLevel = 0
+        -- Friend reputation doesn't have same amount of faction needed for each level
+        if isFriendRep(FactionName) and nextStandingId ~= 9 then
+          RepLeftToLevel = 8400 - (8400 * ((earnedValue / 8400) - floor(earnedValue / 8400)))
+        else
+          RepLeftToLevel = topValue - earnedValue
+        end
         local KillsToNext = floor(.5 + (RepLeftToLevel / factionIncreasedBy))
 
         if RepLeftToLevel < factionIncreasedBy then
@@ -212,11 +220,11 @@ function WonderRep_OnEvent(self, event, ...)
         end
 
         local EstimatedTimeTolevel = RepLeftToLevel / (RepGained / WRep.SessionTime)
-        if (Wr_save.AnnounceLeft == true and Wr_save.ATimeLeft == true) then
+        if Wr_save.AnnounceLeft == true and Wr_save.ATimeLeft == true then
           WRep.frame:AddMessage("WonderRep: " .. RepLeftToLevel .. " reputation with " .. FactionName .. " needed for " .. RepNextLevelName .. ". (" .. KillsToNext .. " reputation gains left) A total of " .. RepGained .. " reputation gained this session. " .. WonderRep_TimeText(EstimatedTimeTolevel) .. " estimated time to " .. RepNextLevelName .. ".", WRep.Color.R, WRep.Color.G, WRep.Color.B)
-        elseif (Wr_save.AnnounceLeft == true) then
+        elseif Wr_save.AnnounceLeft == true then
           WRep.frame:AddMessage("WonderRep: " .. RepLeftToLevel .. " reputation with " .. FactionName .. " needed for " .. RepNextLevelName .. ". (" .. KillsToNext .. " reputation gains left)", WRep.Color.R, WRep.Color.G, WRep.Color.B)
-        elseif (Wr_save.ATimeLeft == true) then
+        elseif Wr_save.ATimeLeft == true then
           WRep.frame:AddMessage("WonderRep: " .. RepGained .. " reputation with " .. FactionName .. " gained this session. " .. WonderRep_TimeText(EstimatedTimeTolevel) .. " estimated time to " .. RepNextLevelName .. ".", WRep.Color.R, WRep.Color.G, WRep.Color.B)
         end
         WRep.AmountGained = 0
@@ -224,37 +232,38 @@ function WonderRep_OnEvent(self, event, ...)
     else
       WRep.frame:AddMessage("Brand new faction detected!", WRep.Color.R, WRep.Color.G, WRep.Color.B)
     end
+    return
   end
 
   -- Event fired when player finish loading the game (zone, login, reloadui)
   -- We use this event to check where the player is using GetCurrentMapContinent(),
   -- we can tell if the player if in a BG, if they are we find out which
-  if (event == "PLAYER_ENTERING_WORLD") then
+  if event == "PLAYER_ENTERING_WORLD" then
     -- Variable to hold if player is Horde or Alliance
     local HordeOrAlliance = UnitFactionGroup("player")
     SetMapToCurrentZone()
     local x = GetCurrentMapContinent()
     local FactionName
 
-    if (x == -1) then
+    if x == -1 then
       local i = 0
       for i = 1, GetMaxBattlefieldID() do
         local status, mapName, instanceID = GetBattlefieldStatus(i)
-        if (instanceID ~= 0) then
-          if (mapName == "Arathi Basin") then
-            if (HordeOrAlliance == "Horde") then
+        if instanceID ~= 0 then
+          if mapName == "Arathi Basin" then
+            if HordeOrAlliance == "Horde" then
               FactionName = "The Defilers"
             else
               FactionName = "The League of Arathor"
             end
-          elseif (mapName == "Warsong Gulch") then
-            if (HordeOrAlliance == "Horde") then
+          elseif mapName == "Warsong Gulch" then
+            if HordeOrAlliance == "Horde" then
               FactionName = "Warsong Outriders"
             else
               FactionName = "Silverwing Sentinels"
             end
-          elseif (mapName == "Alterac Valley") then
-            if (HordeOrAlliance == "Horde") then
+          elseif mapName == "Alterac Valley" then
+            if HordeOrAlliance == "Horde" then
               FactionName = "Frostwolf Clan"
             else
               FactionName = "Stormpike Guard"
@@ -267,42 +276,41 @@ function WonderRep_OnEvent(self, event, ...)
 
       local watched_name = GetWatchedFactionInfo()
       local RepIndex, standingId = WonderRep_GetRepMatch(FactionName)
-      if (standingId == 8) then
+      if standingId == 8 then
         return
       end
-      if (FactionName ~= watched_name) then
+      if FactionName ~= watched_name then
         SetWatchedFactionIndex(RepIndex)
         WRep.frame:AddMessage("WonderRep: Reputation Bar changed to: " .. FactionName .. ".", WRep.Color.R, WRep.Color.G, WRep.Color.B)
       end
     end
   end
 
-  if (event == "WORLD_MAP_UPDATE") then
+  if event == "WORLD_MAP_UPDATE" then
     local x,y = GetPlayerMapPosition("player")
-    if (x and y == 0) then
+    if x and y == 0 then -- should this be x == 0 and y == 0?
       local InstanceName = GetRealZoneText()
       local FactionName = ""
-      if (InstanceName == "Zul'Gurub") then
+      if InstanceName == "Zul'Gurub" then
         FactionName = "Zandalar Tribe"
-      end
-      if (InstanceName == "Stratholme") then
+      elseif InstanceName == "Stratholme" then
         FactionName = "Argent Dawn"
-      end
-      if (InstanceName == "Naxxramas") then
+      elseif InstanceName == "Naxxramas" then
         FactionName = "Argent Dawn"
       end
       if FactionName ~= "" then
         local RepIndex, standingId = WonderRep_GetRepMatch(FactionName)
-        if (standingId == 8) then
+        if standingId == 8 then
           return
         end
         local WatchedName = GetWatchedFactionInfo()
-        if (FactionName ~= WatchedName) then
+        if FactionName ~= WatchedName then
           SetWatchedFactionIndex(RepIndex)
           WRep.frame:AddMessage("WonderRep: Reputation Bar changed to: " .. FactionName .. ".", WRep.Color.R, WRep.Color.G, WRep.Color.B)
         end
       end
     end
+    return
   end
 end
 
@@ -318,7 +326,7 @@ function WonderRep_GetRepMatch(FactionName)
     if name == lastFactionName then break end
     lastFactionName = name
 
-    if (name == FactionName) then
+    if name == FactionName then
       return factionIndex, standingId, topValue, earnedValue
     end
 
@@ -328,7 +336,7 @@ end
 
 function WonderRep_OnUpdate(self, elapsed)
   WRep.TimeSave = WRep.TimeSave + elapsed
-  if (WRep.TimeSave > 0.5) then
+  if WRep.TimeSave > 0.5 then
     WRep.SessionTime = WRep.SessionTime + WRep.TimeSave
     WRep.TimeSave = 0
   end
@@ -340,27 +348,27 @@ end
 function Wr_Status()
   WRep.frame:AddMessage("WonderRep Status:", WRep.Color.R, WRep.Color.G, WRep.Color.B)
 
-  if (Wr_save.RepChange == true) then
+  if Wr_save.RepChange == true then
     WRep.frame:AddMessage("WonderRep will announce when reputation bar is changed.", WRep.Color.R, WRep.Color.G, WRep.Color.B)
   else
     WRep.frame:AddMessage("WonderRep will not announce when reputation bar is changed.", WRep.Color.R, WRep.Color.G, WRep.Color.B)
   end
-  if (Wr_save.ChangeBar == true) then
+  if Wr_save.ChangeBar == true then
     WRep.frame:AddMessage("WonderRep will automatically change the reputation bar.", WRep.Color.R, WRep.Color.G, WRep.Color.B)
   else
     WRep.frame:AddMessage("WonderRep will not automatically change the reputation bar.", WRep.Color.R, WRep.Color.G, WRep.Color.B)
   end
-  if (Wr_save.AnnounceLeft == true) then
+  if Wr_save.AnnounceLeft == true then
     WRep.frame:AddMessage("WonderRep will announce reputation left to next level every "..WRep.AmountGainedInterval.." reputation", WRep.Color.R, WRep.Color.G, WRep.Color.B)
   else
     WRep.frame:AddMessage("WonderRep will not announce reputation left to next level", WRep.Color.R, WRep.Color.G, WRep.Color.B)
   end
-  if (Wr_save.ATimeLeft == true) then
+  if Wr_save.ATimeLeft == true then
     WRep.frame:AddMessage("WonderRep will announce estimated time left to next level every "..WRep.AmountGainedInterval.." reputation", WRep.Color.R, WRep.Color.G, WRep.Color.B)
   else
     WRep.frame:AddMessage("WonderRep will not announce estimated time left to next level", WRep.Color.R, WRep.Color.G, WRep.Color.B)
   end
-  if (Wr_save.frame == true) then
+  if Wr_save.frame == true then
     WRep.frame:AddMessage("WonderRep will show all messages in the Chat Frame", WRep.Color.R, WRep.Color.G, WRep.Color.B)
   else
     WRep.frame:AddMessage("WonderRep will show all messages in the Combat Log", WRep.Color.R, WRep.Color.G, WRep.Color.B)
@@ -392,16 +400,16 @@ function WonderRep_TimeText(s)
   local seconds = s
 
   local timeText = ""
-  if (days ~= 0) then
+  if days ~= 0 then
     timeText = timeText..format("%dd ", days)
   end
-  if (hours ~= 0) then
+  if hours ~= 0 then
     timeText = timeText..format("%dh ", hours)
   end
-  if (minutes ~= 0) then
+  if minutes ~= 0 then
     timeText = timeText..format("%dm ", minutes)
   end
-  if (seconds ~= 0) then
+  if seconds ~= 0 then
     timeText = timeText..format("%ds", seconds)
   end
 
@@ -412,68 +420,68 @@ end
 -- Slash Function
 ------------
 function WonderRep(msg)
-  if (msg) then
+  if msg then
     local command = string.lower(msg)
-    if (command == "") then
+    if command == "" then
       WonderRepOptions_Toggle()
-    elseif (command == "help") then
+    elseif command == "help" then
       WonderRep_PrintHelp()
-    elseif (command == "combatlog") then
-      WRep.frame = _G[ChatFrame2]
+    elseif command == "combatlog" then
+      WRep.frame = _G["ChatFrame2"]
       Wr_save.frame = false
       Wr_Status()
-    elseif (command == "chat") then
-      WRep.frame = _G[ChatFrame1]
+    elseif command == "chat" then
+      WRep.frame = _G["ChatFrame1"]
       Wr_save.frame = true
       Wr_Status()
-    elseif (command == "status") then
+    elseif command == "status" then
       Wr_Status()
-    elseif (command == "announce") then
-      if (Wr_save.AnnounceLeft == true) then
+    elseif command == "announce" then
+      if Wr_save.AnnounceLeft == true then
         Wr_save.AnnounceLeft = false
       else
         Wr_save.AnnounceLeft = true
       end
       Wr_Status()
-    elseif (command == "barchange") then
-      if (Wr_save.RepChange == true) then
+    elseif command == "barchange" then
+      if Wr_save.RepChange == true then
         Wr_save.RepChange = false
       else
         Wr_save.RepChange = true
       end
       Wr_Status()
-    elseif (command == "autobar") then
-      if (Wr_save.ChangeBar == true) then
+    elseif command == "autobar" then
+      if Wr_save.ChangeBar == true then
         Wr_save.ChangeBar = false
       else
         Wr_save.ChangeBar = true
       end
       Wr_Status()
-    elseif (command == "interval 1") then
+    elseif command == "interval 1" then
       WRep.AmountGainedInterval = 1
       Wr_save.AmountGainedInterval = 1
       Wr_Status()
-    elseif (command == "interval 10") then
+    elseif command == "interval 10" then
       WRep.AmountGainedInterval = 10
       Wr_save.AmountGainedInterval = 10
       Wr_Status()
-    elseif (command == "interval 50") then
+    elseif command == "interval 50" then
       WRep.AmountGainedInterval = 50
       Wr_save.AmountGainedInterval = 50
       Wr_Status()
-    elseif (command == "interval 100") then
+    elseif command == "interval 100" then
       WRep.AmountGainedInterval = 100
       Wr_save.AmountGainedInterval = 100
       Wr_Status()
-    elseif (command == "interval 200") then
+    elseif command == "interval 200" then
       WRep.AmountGainedInterval = 200
       Wr_save.AmountGainedInterval = 200
       Wr_Status()
-    elseif (command == "interval 500") then
+    elseif command == "interval 500" then
       WRep.AmountGainedInterval = 500
       Wr_save.AmountGainedInterval = 500
       Wr_Status()
-    elseif (command == "color red") then
+    elseif command == "color red" then
       WRep.Color.R = 1
       WRep.Color.G = 0
       WRep.Color.B = 0
@@ -482,7 +490,7 @@ function WonderRep(msg)
       Wr_save.Color.G = 0
       Wr_save.Color.B = 0
       WRep.frame:AddMessage("WonderRep: Color Changed", WRep.Color.R, WRep.Color.G, WRep.Color.B)
-    elseif (command == "color blue") then
+    elseif command == "color blue" then
       WRep.Color.R = 0
       WRep.Color.G = 0
       WRep.Color.B = 1
@@ -491,7 +499,7 @@ function WonderRep(msg)
       Wr_save.Color.G = 0
       Wr_save.Color.B = 1
       WRep.frame:AddMessage("WonderRep: Color Changed", WRep.Color.R, WRep.Color.G, WRep.Color.B)
-    elseif (command == "color green") then
+    elseif command == "color green" then
       WRep.Color.R = 0
       WRep.Color.G = 1
       WRep.Color.B = 0
@@ -500,7 +508,7 @@ function WonderRep(msg)
       Wr_save.Color.G = 1
       Wr_save.Color.B = 0
       WRep.frame:AddMessage("WonderRep: Color Changed", WRep.Color.R, WRep.Color.G, WRep.Color.B)
-    elseif (command == "color emerald") then
+    elseif command == "color emerald" then
       WRep.Color.R = .3
       WRep.Color.G = .8
       WRep.Color.B = .5
@@ -509,7 +517,7 @@ function WonderRep(msg)
       Wr_save.Color.G = .8
       Wr_save.Color.B = .5
       WRep.frame:AddMessage("WonderRep: Color Changed", WRep.Color.R, WRep.Color.G, WRep.Color.B)
-    elseif (command == "color yellow") then
+    elseif command == "color yellow" then
       WRep.Color.R = 1
       WRep.Color.G = 1
       WRep.Color.B = 0
@@ -518,7 +526,7 @@ function WonderRep(msg)
       Wr_save.Color.G = 1
       Wr_save.Color.B = 0
       WRep.frame:AddMessage("WonderRep: Color Changed", WRep.Color.R, WRep.Color.G, WRep.Color.B)
-    elseif (command == "color orange") then
+    elseif command == "color orange" then
       WRep.Color.R = 1
       WRep.Color.G = .61
       WRep.Color.B = 0
@@ -527,7 +535,7 @@ function WonderRep(msg)
       Wr_save.Color.G = .61
       Wr_save.Color.B = 0
       WRep.frame:AddMessage("WonderRep: Color Changed", WRep.Color.R, WRep.Color.G, WRep.Color.B)
-    elseif (command == "color purple") then
+    elseif command == "color purple" then
       WRep.Color.R = .4
       WRep.Color.G = 0
       WRep.Color.B = .6
@@ -536,7 +544,7 @@ function WonderRep(msg)
       Wr_save.Color.G = 0
       Wr_save.Color.B = .6
       WRep.frame:AddMessage("WonderRep: Color Changed", WRep.Color.R, WRep.Color.G, WRep.Color.B)
-    elseif (command == "color cyan") then
+    elseif command == "color cyan" then
       WRep.Color.R = 0
       WRep.Color.G = 1
       WRep.Color.B = 1
@@ -550,6 +558,19 @@ function WonderRep(msg)
 end
 
 function WonderRep_GetNextRepLevelName(FactionName, standingId)
+  local RepNextLevelName = ""
+
+  if isFriendRep(FactionName) and standingId <= 9 then
+    standingId = standingId - 3
+    RepNextLevelName = WRep.UnitsFriends[standingId]
+  elseif (standingId <= 9) then
+    RepNextLevelName = WRep.Units[standingId]
+  end
+
+  return RepNextLevelName
+end
+
+function isFriendRep(FactionName)
   local FriendRep = {}
   table.insert(FriendRep, "Farmer Fung")
   table.insert(FriendRep, "Chee Chee")
@@ -562,14 +583,6 @@ function WonderRep_GetNextRepLevelName(FactionName, standingId)
   table.insert(FriendRep, "Sho")
   table.insert(FriendRep, "Tina Mudclaw")
   table.insert(FriendRep, "Nat Pagle")
-  local RepNextLevelName = ""
-
-  if tContains(FriendRep, FactionName) and standingId <= 9 then
-    standingId = standingId - 3
-    RepNextLevelName = WRep.UnitsFriends[standingId]
-  elseif (standingId <= 9) then
-    RepNextLevelName = WRep.Units[standingId]
-  end
-
-  return RepNextLevelName
+  
+  return tContains(FriendRep, FactionName)
 end
