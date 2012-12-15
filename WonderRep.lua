@@ -1,5 +1,5 @@
 --[[
-  - VERSION: 1.6.18
+  - VERSION: 1.6.19
 
   - WonderRep: Adds all sorts of functionality for reputation changes!
 ]]
@@ -63,7 +63,7 @@ function WonderRep_OnLoad(self)
 
   -- Printing Message in Chat Frame
   if DEFAULT_CHAT_FRAME then
-    ChatFrame1:AddMessage("WonderRep Loaded! Version: 1.6.18", 1, 1, 0)
+    ChatFrame1:AddMessage("WonderRep Loaded! Version: 1.6.19", 1, 1, 0)
   end
 
   -- Don't let this function run more than once
@@ -193,7 +193,7 @@ function WonderRep_OnEvent(self, event, ...)
       local factionIncreasedBy = 1
       local AmountGained = 0
       for AmountGained in string.gmatch(arg1, "%d+")  do
-        factionIncreasedBy = AmountGained + 0
+        factionIncreasedBy = AmountGained + 0 -- ensure that the string value is converted to an integer
         break
       end
 
@@ -203,16 +203,27 @@ function WonderRep_OnEvent(self, event, ...)
       -- Have we gained more rep than the reporting level?
       if WRep.AmountGained >= WRep.AmountGainedInterval then
         local nextStandingId = standingId + 1
-        local RepNextLevelName = WonderRep_GetNextRepLevelName(FactionName, nextStandingId)
-        --WRep.frame:AddMessage("DEBUG: " .. topValue .. "," .. earnedValue)
-        local RepGained = Wrl[FactionName].gained
         local RepLeftToLevel = 0
+
         -- Friend reputation doesn't have same amount of faction needed for each level
-        if isFriendRep(FactionName) and nextStandingId ~= 9 then
-          RepLeftToLevel = 8400 - (8400 * ((earnedValue / 8400) - floor(earnedValue / 8400)))
+        -- and the standing id doesn't line up either
+        if isFriendRep(FactionName) then
+          local tmpVal = earnedValue / 8400
+          local tmpValInt = floor(tmpVal)
+          nextStandingId = tmpValInt + 2
+          if nextStandingId > 6 then
+            return
+          end
+          RepLeftToLevel = 8400 - (8400 * (tmpVal - tmpValInt))
         else
+          if nextStandingId > 9 then
+            return
+          end
           RepLeftToLevel = topValue - earnedValue
         end
+
+        local RepNextLevelName = WonderRep_GetNextRepLevelName(FactionName, nextStandingId)
+        local RepGained = Wrl[FactionName].gained
         local KillsToNext = floor(.5 + (RepLeftToLevel / factionIncreasedBy))
 
         if RepLeftToLevel < factionIncreasedBy then
@@ -560,8 +571,7 @@ end
 function WonderRep_GetNextRepLevelName(FactionName, standingId)
   local RepNextLevelName = ""
 
-  if isFriendRep(FactionName) and standingId <= 9 then
-    standingId = standingId - 3
+  if isFriendRep(FactionName) and standingId <= 6 then
     RepNextLevelName = WRep.UnitsFriends[standingId]
   elseif (standingId <= 9) then
     RepNextLevelName = WRep.Units[standingId]
