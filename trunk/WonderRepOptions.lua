@@ -1,15 +1,18 @@
 
 -- Options
+-- Interface to the Localization lib
+Localization.SetAddonDefault("WonderRep", "enUS")
+local function TEXT(key) return Localization.GetClientString("WonderRep", key) end
 
 local WONDERREP_COLOR_DROPDOWN_LIST = {
-  {name = "Red", color = "red"},
-  {name = "Green", color = "green"},
-  {name = "Emerald", color = "emerald"},
-  {name = "Yellow", color = "yellow"},
-  {name = "Orange", color = "orange"},
-  {name = "Blue", color = "blue"},
-  {name = "Purple", color = "purple"},
-  {name = "Cyan", color = "cyan"}
+  {name = TEXT("OPTIONRED"), color = TEXT("COLORRED")},
+  {name = TEXT("OPTIONGREEN"), color = TEXT("COLORGREEN")},
+  {name = TEXT("OPTIONEMERALD"), color = TEXT("COLOREMERALD")},
+  {name = TEXT("OPTIONYELLOW"), color = TEXT("COLORYELLOW")},
+  {name = TEXT("OPTIONORANGE"), color = TEXT("COLORORANGE")},
+  {name = TEXT("OPTIONBLUE"), color = TEXT("COLORBLUE")},
+  {name = TEXT("OPTIONPURPLE"), color = TEXT("COLORPURPLE")},
+  {name = TEXT("OPTIONCYAN"), color = TEXT("COLORCYAN")}
 }
 
 function WonderRepOptions_AnnounceToggle()
@@ -136,7 +139,7 @@ function WonderRepOptionsColorDropDown_OnClick(self)
   Wr_save.Color.R = WRep.Color.R
   Wr_save.Color.G = WRep.Color.G
   Wr_save.Color.B = WRep.Color.B
-  WRep.frame:AddMessage("WonderRep: Color Changed", WRep.Color.R, WRep.Color.G, WRep.Color.B)
+  WRep.frame:AddMessage("WonderRep: " .. TEXT("COLORCHANGED"), WRep.Color.R, WRep.Color.G, WRep.Color.B)
   WonderRepOptions_Init()
 end
 

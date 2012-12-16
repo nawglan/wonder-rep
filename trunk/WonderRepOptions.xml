@@ -2,7 +2,7 @@
 ..\FrameXML\UI.xsd">
 	<Frame name="WonderRepOptionsFrame" toplevel="true" movable="true" enableMouse="true" hidden="true" parent="UIParent" enableKeyboard="true">
 		<Size>
-			<AbsDimension x="420" y="380"/>
+			<AbsDimension x="470" y="380"/>
 		</Size>
 		<Anchors>
 			<Anchor point="CENTER"/>
@@ -95,8 +95,8 @@
 				</Anchors>
 				<Scripts>
 					<OnLoad>
-						_G[self:GetName().."Text"]:SetText("Announce Left -- /wr announce");
-						self.tooltipText = "Toggles whether to display reputation to next level messages";
+						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGANNOUNCE"));
+						self.tooltipText = Localization.GetClientString("WonderRep", "DIALOGANNOUNCETOOLTIP");
 					</OnLoad>
 					<OnClick>
 						WonderRepOptions_AnnounceToggle();
@@ -113,8 +113,8 @@
 				</Anchors>
 				<Scripts>
 					<OnLoad>
-						_G[self:GetName().."Text"]:SetText("Auto change reputation bar -- /wr autobar");
-						self.tooltipText = "Toggles whether to automatically change the reputation bar or not";
+						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGAUTOBAR"));
+						self.tooltipText = Localization.GetClientString("WonderRep", "DIALOGAUTOBARTOOLTIP");
 					</OnLoad>
 					<OnClick>
 						WonderRepOptions_AutoBarToggle();
@@ -131,8 +131,8 @@
 				</Anchors>
 				<Scripts>
 					<OnLoad>
-						_G[self:GetName().."Text"]:SetText("Announce reputation change -- /wr barchange");
-						self.tooltipText = "Toggles whether to display a message when the reputation bar is changed";
+						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGBARCHANGE"));
+						self.tooltipText = Localization.GetClientString("WonderRep", "DIALOGBARCHANGETOOLITP");
 					</OnLoad>
 					<OnClick>
 						WonderRepOptions_BarChangeToggle();
@@ -149,8 +149,8 @@
 				</Anchors>
 				<Scripts>
 					<OnLoad>
-						_G[self:GetName().."Text"]:SetText("Chat box -- /wr chat");
-						self.tooltipText = "Makes WonderRep print messages in the default chat box";
+						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGCHAT"));
+						self.tooltipText = Localization.GetClientString("WonderRep", "DIALOGCHATTOOLTIP");
 					</OnLoad>
 					<OnClick>
 						WonderRepOptions_ChatToggle();
@@ -167,8 +167,8 @@
 				</Anchors>
 				<Scripts>
 					<OnLoad>
-						_G[self:GetName().."Text"]:SetText("Combat Log -- /wr combatlog");
-						self.tooltipText = "Makes WonderRep print message in the combat log";
+						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGCOMBAT"));
+						self.tooltipText = Localization.GetClientString("WonderRep", "DIALOGCOMBATTOOLTIP");
 					</OnLoad>
 					<OnClick>
 						WonderRepOptions_ChatToggle();
@@ -185,8 +185,8 @@
 				</Anchors>
 				<Scripts>
 					<OnLoad>
-						_G[self:GetName().."Text"]:SetText("Announce estimated time left -- /wr timeleft");
-						self.tooltipText = "Toggles whether to display a the estimated time left message to next level";
+						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGTIMELEFT"));
+						self.tooltipText = Localization.GetClientString("WonderRep", "DIALOGTIMELEFTTOOLTIP");
 					</OnLoad>
 					<OnClick>
 						WonderRepOptions_TimeToggle();
@@ -206,23 +206,23 @@
 				</Anchors>
 				<Scripts>
 					<OnLoad>
-						_G[self:GetName().."Text"]:SetText("Interval Slider");
+						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGINTERVAL"));
 						_G[self:GetName().."High"]:SetText();
 						_G[self:GetName().."Low"]:SetText();
 						self:SetMinMaxValues(1,500);
-						self:SetValueStep(1);
-						self.tooltipText = "Drag the slider to change the interval at which WonderRep uses to announce reputation gains";
+						self:SetValueStep(50);
+						self.tooltipText = Localization.GetClientString("WonderRep", "DIALOGINTERVALTOOLTIP");
 					</OnLoad>
 					<OnValueChanged>
 						Wr_save.AmountGainedLevel = self:GetValue();
 						WonderRepOptions_IntervalSlider();
-						_G[self:GetName().."Text"]:SetText("Interval Slider - "..self:GetValue().."");
+						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGINTERVALVALUE") .. self:GetValue() .. "");
 					</OnValueChanged>
 				</Scripts>
 			</Slider>
-			<Button name="WonderRepFrameHelp" inherits="OptionsButtonTemplate" text="Reset Session Time">
+			<Button name="WonderRepFrameReset" inherits="OptionsButtonTemplate" text="Reset Session Time">
 				<Size>
-					<AbsDimension x="165" y="20"/>
+					<AbsDimension x="195" y="20"/>
 				</Size>
 				<Anchors>
 					<Anchor point="BOTTOM">
@@ -232,6 +232,9 @@
 					</Anchor>
 				</Anchors>
 				<Scripts>
+					<OnLoad>
+						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGRESET"));
+					</OnLoad>
 					<OnClick>
 						WonderRepOptions_ResetTime();
 					</OnClick>
@@ -239,7 +242,7 @@
 			</Button>
 			<Button name="WonderRepFrameHelp" inherits="OptionsButtonTemplate" text="Option Descriptions">
 				<Size>
-					<AbsDimension x="165" y="20"/>
+					<AbsDimension x="195" y="20"/>
 				</Size>
 				<Anchors>
 					<Anchor point="BOTTOM">
@@ -249,6 +252,9 @@
 					</Anchor>
 				</Anchors>
 				<Scripts>
+					<OnLoad>
+						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGDESCRIPTIONS"));
+					</OnLoad>
 					<OnClick>
 						WonderRep_PrintHelp();
 					</OnClick>
@@ -263,6 +269,9 @@
 					</Anchor>
 				</Anchors>
 				<Scripts>
+					<OnLoad>
+						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGCLOSE"));
+					</OnLoad>
 					<OnClick>
 						WonderRepOptions_Toggle();
 					</OnClick>
