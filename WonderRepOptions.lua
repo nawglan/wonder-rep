@@ -78,6 +78,10 @@ function WonderRepOptions_ResetTime()
 end
 
 function WonderRepOptions_IntervalSlider()
+  Wr_save.AmountGainedInterval = WonderRepSliderInterval:GetValue()
+  if Wr_save.AmountGainedInterval == 0 then
+    Wr_save.AmountGainedInterval = 1
+  end
   WRep.AmountGainedInterval = Wr_save.AmountGainedInterval
 end
 
@@ -156,5 +160,5 @@ function WonderRepOptions_Init()
   WonderRepOptionsFrameChat:SetChecked(Wr_save.frame)
   WonderRepOptionsFrameCombatLog:SetChecked(not Wr_save.frame)
   WonderRepOptionsFrameTime:SetChecked(Wr_save.ATimeLeft)
-  SliderInterval:SetValue(Wr_save.AmountGainedInterval)
+  WonderRepSliderInterval:SetValue(Wr_save.AmountGainedInterval)
 end

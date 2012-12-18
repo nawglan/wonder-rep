@@ -63,7 +63,7 @@
 					<Anchors>
 						<Anchor point="TOPLEFT">
 							<Offset>
-								<AbsDimension x="120" y="-275"/>
+								<AbsDimension x="150" y="-275"/>
 							</Offset>
 						</Anchor>
 					</Anchors>
@@ -193,7 +193,7 @@
 					</OnClick>
 				</Scripts>
 			</CheckButton>
-			<Slider name="SliderInterval" inherits="OptionsSliderTemplate">
+			<Slider name="WonderRepSliderInterval" inherits="OptionsSliderTemplate">
 				<Size>
 					<AbsDimension x="380" y="16"/>
 				</Size>
@@ -209,7 +209,7 @@
 						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGINTERVAL"));
 						_G[self:GetName().."High"]:SetText();
 						_G[self:GetName().."Low"]:SetText();
-						self:SetMinMaxValues(1,500);
+						self:SetMinMaxValues(0,500);
 						self:SetValueStep(50);
 						self.tooltipText = Localization.GetClientString("WonderRep", "DIALOGINTERVALTOOLTIP");
 					</OnLoad>
@@ -222,7 +222,7 @@
 			</Slider>
 			<Button name="WonderRepFrameReset" inherits="OptionsButtonTemplate" text="Reset Session Time">
 				<Size>
-					<AbsDimension x="195" y="20"/>
+					<AbsDimension x="210" y="20"/>
 				</Size>
 				<Anchors>
 					<Anchor point="BOTTOM">
@@ -242,7 +242,7 @@
 			</Button>
 			<Button name="WonderRepFrameHelp" inherits="OptionsButtonTemplate" text="Option Descriptions">
 				<Size>
-					<AbsDimension x="195" y="20"/>
+					<AbsDimension x="210" y="20"/>
 				</Size>
 				<Anchors>
 					<Anchor point="BOTTOM">
@@ -280,6 +280,8 @@
 		</Frames>
 		<Scripts>
 			<OnLoad>
+        _G["WonderRepOptions_ColorLabel"]:SetText(Localization.GetClientString("WonderRep","COLORLABEL"));
+        _G["WonderRepOptions_SessionTimeLabel"]:SetText(Localization.GetClientString("WonderRep","SESSIONLABEL"));
 				WonderRepOptions_OnLoad();
 			</OnLoad>
 		</Scripts>

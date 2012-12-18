@@ -1,5 +1,5 @@
 --[[
-  - VERSION: 1.6.20
+  - VERSION: 1.6.21
 
   - WonderRep: Adds all sorts of functionality for reputation changes!
 ]]
@@ -163,7 +163,11 @@ function WonderRep_OnEvent(self, event, ...)
     -- Reputation with <REPNAME> increased by <AMOUNT>.
     local HasIndexStart, HasIndexStop, FactionName, AmountGained = string.find(arg1, TEXT("REPMATCHSTR"))
     if HasIndexStart == nil then
-      return
+      -- Try the REPMATCHSTR2
+      HasIndexStart, HasIndexStop, FactionName, AmountGained = string.find(arg1, TEXT("REPMATCHSTR2"))
+      if HasIndexStart == nil then
+        return
+      end
     end
     local factionIncreasedBy = 1
     factionIncreasedBy = AmountGained + 0 -- ensure that the string value is converted to an integer
