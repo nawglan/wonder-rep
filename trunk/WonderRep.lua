@@ -68,7 +68,7 @@ function WonderRep_OnLoad(self)
 
   -- Printing Message in Chat Frame
   if DEFAULT_CHAT_FRAME then
-    ChatFrame1:AddMessage(TEXT("LOADEDSTR") .. " 1.6.20", 1, 1, 0)
+    ChatFrame1:AddMessage(TEXT("LOADEDSTR") .. " 1.6.22", 1, 1, 0)
   end
 
   -- Don't let this function run more than once
