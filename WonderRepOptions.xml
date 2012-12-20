@@ -2,7 +2,7 @@
 ..\FrameXML\UI.xsd">
 	<Frame name="WonderRepOptionsFrame" toplevel="true" movable="true" enableMouse="true" hidden="true" parent="UIParent" enableKeyboard="true">
 		<Size>
-			<AbsDimension x="470" y="380"/>
+			<AbsDimension x="470" y="400"/>
 		</Size>
 		<Anchors>
 			<Anchor point="CENTER"/>
@@ -45,7 +45,7 @@
 					<Anchors>
 						<Anchor point="TOPLEFT">
 							<Offset>
-								<AbsDimension x="33" y="-225"/>
+								<AbsDimension x="33" y="-245"/>
 							</Offset>
 						</Anchor>
 					</Anchors>
@@ -54,7 +54,7 @@
 					<Anchors>
 						<Anchor point="TOPLEFT">
 							<Offset>
-								<AbsDimension x="33" y="-275"/>
+								<AbsDimension x="33" y="-295"/>
 							</Offset>
 						</Anchor>
 					</Anchors>
@@ -63,7 +63,7 @@
 					<Anchors>
 						<Anchor point="TOPLEFT">
 							<Offset>
-								<AbsDimension x="150" y="-275"/>
+								<AbsDimension x="150" y="-295"/>
 							</Offset>
 						</Anchor>
 					</Anchors>
@@ -75,7 +75,7 @@
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset>
-							<AbsDimension x="30" y="-240"/>
+							<AbsDimension x="30" y="-260"/>
 						</Offset>
 					</Anchor>
 				</Anchors>
@@ -96,7 +96,7 @@
 				<Scripts>
 					<OnLoad>
 						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGANNOUNCE"));
-						self.tooltipText = Localization.GetClientString("WonderRep", "DIALOGANNOUNCETOOLTIP");
+						self.tooltipText = Localization.GetClientString("WonderRep", "HELPANNOUNCE");
 					</OnLoad>
 					<OnClick>
 						WonderRepOptions_AnnounceToggle();
@@ -114,7 +114,7 @@
 				<Scripts>
 					<OnLoad>
 						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGAUTOBAR"));
-						self.tooltipText = Localization.GetClientString("WonderRep", "DIALOGAUTOBARTOOLTIP");
+						self.tooltipText = Localization.GetClientString("WonderRep", "HELPAUTOBAR");
 					</OnLoad>
 					<OnClick>
 						WonderRepOptions_AutoBarToggle();
@@ -132,7 +132,7 @@
 				<Scripts>
 					<OnLoad>
 						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGBARCHANGE"));
-						self.tooltipText = Localization.GetClientString("WonderRep", "DIALOGBARCHANGETOOLITP");
+						self.tooltipText = Localization.GetClientString("WonderRep", "HELPBARCHANGE");
 					</OnLoad>
 					<OnClick>
 						WonderRepOptions_BarChangeToggle();
@@ -150,7 +150,7 @@
 				<Scripts>
 					<OnLoad>
 						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGCHAT"));
-						self.tooltipText = Localization.GetClientString("WonderRep", "DIALOGCHATTOOLTIP");
+						self.tooltipText = Localization.GetClientString("WonderRep", "HELPCHAT");
 					</OnLoad>
 					<OnClick>
 						WonderRepOptions_ChatToggle();
@@ -168,7 +168,7 @@
 				<Scripts>
 					<OnLoad>
 						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGCOMBAT"));
-						self.tooltipText = Localization.GetClientString("WonderRep", "DIALOGCOMBATTOOLTIP");
+						self.tooltipText = Localization.GetClientString("WonderRep", "HELPCOMBAT");
 					</OnLoad>
 					<OnClick>
 						WonderRepOptions_ChatToggle();
@@ -186,10 +186,28 @@
 				<Scripts>
 					<OnLoad>
 						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGTIMELEFT"));
-						self.tooltipText = Localization.GetClientString("WonderRep", "DIALOGTIMELEFTTOOLTIP");
+						self.tooltipText = Localization.GetClientString("WonderRep", "HELPTIMELEFT");
 					</OnLoad>
 					<OnClick>
 						WonderRepOptions_TimeToggle();
+					</OnClick>
+				</Scripts>
+			</CheckButton>
+			<CheckButton name="WonderRepOptionsGuildRep" inherits="OptionsCheckButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="30" y="-165"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGGUILD"));
+						self.tooltipText = Localization.GetClientString("WonderRep", "HELPGUILD");
+					</OnLoad>
+					<OnClick>
+						WonderRepOptions_GuildToggle();
 					</OnClick>
 				</Scripts>
 			</CheckButton>
@@ -200,7 +218,7 @@
 				<Anchors>
 					<Anchor point="TOP">
 						<Offset>
-							<AbsDimension x="0" y="-190" />
+							<AbsDimension x="0" y="-210" />
 						</Offset>
 					</Anchor>
 				</Anchors>
