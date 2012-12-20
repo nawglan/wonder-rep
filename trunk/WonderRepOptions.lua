@@ -62,6 +62,15 @@ function WonderRepOptions_TimeToggle()
   WonderRepOptions_Init()
 end
 
+function WonderRepOptions_GuildToggle()
+  if Wr_save.Guild then
+    Wr_save.Guild = false
+  else
+    Wr_save.Guild = true
+  end
+  WonderRepOptions_Init()
+end
+
 function WonderRepOptions_Toggle()
   if WonderRepOptionsFrame:IsVisible() then
     WonderRepOptionsFrame:Hide()

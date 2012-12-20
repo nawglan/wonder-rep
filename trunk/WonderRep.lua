@@ -68,7 +68,7 @@ function WonderRep_OnLoad(self)
 
   -- Printing Message in Chat Frame
   if DEFAULT_CHAT_FRAME then
-    ChatFrame1:AddMessage(TEXT("LOADEDSTR") .. " 1.6.22", 1, 1, 0)
+    ChatFrame1:AddMessage(TEXT("LOADEDSTR") .. " 1.6.23", 1, 1, 0)
   end
 
   -- Don't let this function run more than once
@@ -97,7 +97,7 @@ end
 
 function WonderRep_LoadSavedVars()
   if not Wr_version then
-    Wr_version = 170
+    Wr_version = 180
   end
 
   if not Wr_save then
@@ -107,6 +107,7 @@ function WonderRep_LoadSavedVars()
       ChangeBar = true,
       frame = true,
       ATimeLeft = true,
+      Guild = true,
       Color = {
         id = 4,
         R = 1,
@@ -118,7 +119,7 @@ function WonderRep_LoadSavedVars()
     ChatFrame1:AddMessage(TEXT("NEWLOADSTR"), 1, 1, 0)
   end
 
-  if Wr_version ~= 170 then
+  if Wr_version < 170 then
     Wr_save.ATimeLeft = true
     Wr_save.AmountGainedInterval = Wr_save.AmountGainedLevel
     Wr_save.Color = {
@@ -128,6 +129,9 @@ function WonderRep_LoadSavedVars()
       B = Wr_save.colorc
     }
     Wr_version = 170
+  end
+  if Wr_version < 180 then
+    Wr_save.Guild = true
   end
 
   if Wr_save.frame then
@@ -171,6 +175,13 @@ function WonderRep_OnEvent(self, event, ...)
     end
     local factionIncreasedBy = 1
     factionIncreasedBy = AmountGained + 0 -- ensure that the string value is converted to an integer
+    
+    if FactionName == TEXT("GUILD") then
+      if not Wr_save.Guild then
+        return
+      end
+      FactionName = GetGuildInfo("player");
+    end
 
     -- Using the string we just made, sending to Match function
     local RepIndex, standingId, topValue, earnedValue = WonderRep_GetRepMatch(FactionName)
@@ -368,6 +379,11 @@ function Wr_Status()
   else
     WRep.frame:AddMessage("WonderRep " .. TEXT("NOTIMELEFT"), WRep.Color.R, WRep.Color.G, WRep.Color.B)
   end
+  if Wr_save.Guild == true then
+    WRep.frame:AddMessage("WonderRep " .. string.format(TEXT("PROCESSGUILD"), WRep.AmountGainedInterval), WRep.Color.R, WRep.Color.G, WRep.Color.B)
+  else
+    WRep.frame:AddMessage("WonderRep " .. TEXT("NOPROCESSGUILD"), WRep.Color.R, WRep.Color.G, WRep.Color.B)
+  end
   if Wr_save.frame == true then
     WRep.frame:AddMessage("WonderRep " .. TEXT("SHOWCHATFRAME"), WRep.Color.R, WRep.Color.G, WRep.Color.B)
   else
@@ -383,7 +399,8 @@ function WonderRep_PrintHelp()
   WRep.frame:AddMessage(TEXT("COMMANDHELP") .. " -- " .. TEXT("HELPHELP"))
   WRep.frame:AddMessage(TEXT("COMMANDSTATUS") .. " -- " .. TEXT("HELPSTATUS"))
   WRep.frame:AddMessage(TEXT("COMMANDANNOUNCE") .. " -- " .. TEXT("HELPANNOUNCE"))
-  WRep.frame:AddMessage(TEXT("COMMANDTIMELEFT") .. " -- " .. TEXT("HELPTIMELEFT")) -- TODO: Add to Localization
+  WRep.frame:AddMessage(TEXT("COMMANDGUILD") .. " -- " .. TEXT("HELPGUILD"))
+  WRep.frame:AddMessage(TEXT("COMMANDTIMELEFT") .. " -- " .. TEXT("HELPTIMELEFT"))
   WRep.frame:AddMessage(TEXT("COMMANDAUTOBAR") .. " -- " .. TEXT("HELPAUTOBAR"))
   WRep.frame:AddMessage(TEXT("COMMANDBARCHANGE") .. " -- " .. TEXT("HELPBARCHANGE"))
   WRep.frame:AddMessage(TEXT("COMMANDCHAT") .. " -- " .. TEXT("HELPCHAT"))
@@ -442,6 +459,13 @@ function WonderRep(msg)
         Wr_save.AnnounceLeft = false
       else
         Wr_save.AnnounceLeft = true
+      end
+      Wr_Status()
+    elseif command == TEXT("COMMANDGUILD") then
+      if Wr_save.Guild == true then
+        Wr_save.Guild = false
+      else
+        Wr_save.Guild = true
       end
       Wr_Status()
     elseif command == TEXT("COMMANDTIMELEFT") then
