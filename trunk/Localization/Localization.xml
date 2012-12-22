@@ -11,9 +11,8 @@
   <Script file="localization.en.lua"/>
   <Script file="localization.esMX.lua"/>
   <Script file="localization.esES.lua"/>
-
-<!--  <Script file="localization.pt.lua"/>
-  <Script file="localization.fr.lua"/>
+  <Script file="localization.ptBR.lua"/>
+<!--  <Script file="localization.fr.lua"/>
   <Script file="localization.de.lua"/>
   <Script file="localization.it.lua"/>
   <Script file="localization.koKR.lua"/>
