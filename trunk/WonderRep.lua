@@ -1,5 +1,5 @@
 --[[
-  - VERSION: 1.6.24
+  - VERSION: 1.6.25
 
   - WonderRep: Adds all sorts of functionality for reputation changes!
 ]]
@@ -68,7 +68,7 @@ function WonderRep_OnLoad(self)
 
   -- Printing Message in Chat Frame
   if DEFAULT_CHAT_FRAME then
-    ChatFrame1:AddMessage(TEXT("LOADEDSTR") .. " 1.6.24", 1, 1, 0)
+    ChatFrame1:AddMessage(TEXT("LOADEDSTR") .. " 1.6.25", 1, 1, 0)
   end
 
   -- Don't let this function run more than once
@@ -175,7 +175,7 @@ function WonderRep_OnEvent(self, event, ...)
     end
     local factionIncreasedBy = 1
     factionIncreasedBy = AmountGained + 0 -- ensure that the string value is converted to an integer
-    
+
     if FactionName == TEXT("GUILD") then
       if not Wr_save.Guild then
         return
@@ -256,7 +256,7 @@ function WonderRep_OnEvent(self, event, ...)
     local HordeOrAlliance = UnitFactionGroup("player")
     SetMapToCurrentZone()
     local x = GetCurrentMapContinent()
-    local FactionName
+    local FactionName = ""
 
     if x == -1 then
       local i = 0
@@ -287,6 +287,11 @@ function WonderRep_OnEvent(self, event, ...)
         end
       end
 
+      -- Not a mapName we are interested in.
+      if FactionName == "" then
+        return
+      end
+
       local watched_name = GetWatchedFactionInfo()
       local RepIndex, standingId = WonderRep_GetRepMatch(FactionName)
       if standingId == 8 then
@@ -309,16 +314,20 @@ function WonderRep_OnEvent(self, event, ...)
       elseif InstanceName == TEXT("STRATHOLME") or InstanceName == TEXT("NAXXRAMAS") then
         FactionName = TEXT("ARGENTDAWN")
       end
-      if FactionName ~= "" then
-        local RepIndex, standingId = WonderRep_GetRepMatch(FactionName)
-        if standingId == 8 then
-          return
-        end
-        local WatchedName = GetWatchedFactionInfo()
-        if FactionName ~= WatchedName then
-          SetWatchedFactionIndex(RepIndex)
-          WRep.frame:AddMessage("WonderRep: " .. TEXT("REPBARCHANGED") .." " .. FactionName .. ".", WRep.Color.R, WRep.Color.G, WRep.Color.B)
-        end
+
+      -- Not an instance we are interested in.
+      if FactionName == "" then
+        return
+      end
+
+      local RepIndex, standingId = WonderRep_GetRepMatch(FactionName)
+      if standingId == 8 then
+        return
+      end
+      local WatchedName = GetWatchedFactionInfo()
+      if FactionName ~= WatchedName then
+        SetWatchedFactionIndex(RepIndex)
+        WRep.frame:AddMessage("WonderRep: " .. TEXT("REPBARCHANGED") .." " .. FactionName .. ".", WRep.Color.R, WRep.Color.G, WRep.Color.B)
       end
     end
     return
