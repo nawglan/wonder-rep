@@ -95,7 +95,7 @@
 				</Anchors>
 				<Scripts>
 					<OnLoad>
-						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGANNOUNCE"));
+						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGANNOUNCE") .. " -- /wr announce");
 						self.tooltipText = Localization.GetClientString("WonderRep", "HELPANNOUNCE");
 					</OnLoad>
 					<OnClick>
@@ -113,7 +113,7 @@
 				</Anchors>
 				<Scripts>
 					<OnLoad>
-						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGAUTOBAR"));
+						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGAUTOBAR") .. " -- /wr autobar");
 						self.tooltipText = Localization.GetClientString("WonderRep", "HELPAUTOBAR");
 					</OnLoad>
 					<OnClick>
@@ -131,7 +131,7 @@
 				</Anchors>
 				<Scripts>
 					<OnLoad>
-						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGBARCHANGE"));
+						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGBARCHANGE") .. " -- /wr barchange");
 						self.tooltipText = Localization.GetClientString("WonderRep", "HELPBARCHANGE");
 					</OnLoad>
 					<OnClick>
@@ -149,7 +149,7 @@
 				</Anchors>
 				<Scripts>
 					<OnLoad>
-						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGCHAT"));
+						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGCHAT") .. " -- /wr chat");
 						self.tooltipText = Localization.GetClientString("WonderRep", "HELPCHAT");
 					</OnLoad>
 					<OnClick>
@@ -167,7 +167,7 @@
 				</Anchors>
 				<Scripts>
 					<OnLoad>
-						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGCOMBAT"));
+						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGCOMBAT") .. " -- /wr combatlog");
 						self.tooltipText = Localization.GetClientString("WonderRep", "HELPCOMBAT");
 					</OnLoad>
 					<OnClick>
@@ -185,7 +185,7 @@
 				</Anchors>
 				<Scripts>
 					<OnLoad>
-						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGTIMELEFT"));
+						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGTIMELEFT") .. " -- /wr timeleft");
 						self.tooltipText = Localization.GetClientString("WonderRep", "HELPTIMELEFT");
 					</OnLoad>
 					<OnClick>
@@ -203,7 +203,7 @@
 				</Anchors>
 				<Scripts>
 					<OnLoad>
-						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGGUILD"));
+						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGGUILD") .. " -- /wr guildrep");
 						self.tooltipText = Localization.GetClientString("WonderRep", "HELPGUILD");
 					</OnLoad>
 					<OnClick>
@@ -224,7 +224,7 @@
 				</Anchors>
 				<Scripts>
 					<OnLoad>
-						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGINTERVAL"));
+						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGINTERVAL") .. " -- /wr interval");
 						_G[self:GetName().."High"]:SetText();
 						_G[self:GetName().."Low"]:SetText();
 						self:SetMinMaxValues(0,500);

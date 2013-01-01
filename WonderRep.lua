@@ -1,5 +1,5 @@
 --[[
-  - VERSION: 1.6.25
+  - VERSION: 1.6.26
 
   - WonderRep: Adds all sorts of functionality for reputation changes!
 ]]
@@ -68,7 +68,7 @@ function WonderRep_OnLoad(self)
 
   -- Printing Message in Chat Frame
   if DEFAULT_CHAT_FRAME then
-    ChatFrame1:AddMessage(TEXT("LOADEDSTR") .. " 1.6.25", 1, 1, 0)
+    ChatFrame1:AddMessage(TEXT("LOADEDSTR") .. " 1.6.26", 1, 1, 0)
   end
 
   -- Don't let this function run more than once
@@ -128,7 +128,7 @@ function WonderRep_LoadSavedVars()
       G = Wr_save.colorb,
       B = Wr_save.colorc
     }
-    Wr_version = 170
+    Wr_version = 180
   end
   if Wr_version < 180 then
     Wr_save.Guild = true
@@ -366,7 +366,7 @@ end
 -- Printing Functions
 ------------
 function Wr_Status()
-  WRep.frame:AddMessage("WonderRep " .. TEXT("STATUS"), WRep.Color.R, WRep.Color.G, WRep.Color.B)
+  WRep.frame:AddMessage(TEXT("STATUS"), WRep.Color.R, WRep.Color.G, WRep.Color.B)
 
   if Wr_save.RepChange == true then
     WRep.frame:AddMessage("WonderRep " .. TEXT("ANNOUNCE"), WRep.Color.R, WRep.Color.G, WRep.Color.B)
@@ -405,17 +405,17 @@ function WonderRep_PrintHelp()
   WRep.frame:AddMessage("-----------------------------------")
   WRep.frame:AddMessage(TEXT("HELPTITLE"))
   WRep.frame:AddMessage(TEXT("HELPSLASH"))
-  WRep.frame:AddMessage(TEXT("COMMANDHELP") .. " -- " .. TEXT("HELPHELP"))
-  WRep.frame:AddMessage(TEXT("COMMANDSTATUS") .. " -- " .. TEXT("HELPSTATUS"))
-  WRep.frame:AddMessage(TEXT("COMMANDANNOUNCE") .. " -- " .. TEXT("HELPANNOUNCE"))
-  WRep.frame:AddMessage(TEXT("COMMANDGUILD") .. " -- " .. TEXT("HELPGUILD"))
-  WRep.frame:AddMessage(TEXT("COMMANDTIMELEFT") .. " -- " .. TEXT("HELPTIMELEFT"))
-  WRep.frame:AddMessage(TEXT("COMMANDAUTOBAR") .. " -- " .. TEXT("HELPAUTOBAR"))
-  WRep.frame:AddMessage(TEXT("COMMANDBARCHANGE") .. " -- " .. TEXT("HELPBARCHANGE"))
-  WRep.frame:AddMessage(TEXT("COMMANDCHAT") .. " -- " .. TEXT("HELPCHAT"))
-  WRep.frame:AddMessage(TEXT("COMMANDCOMBATLOG") .. " -- " .. TEXT("HELPCOMBATLOG"))
-  WRep.frame:AddMessage(TEXT("COMMANDINTERVAL") .. " -- " .. TEXT("HELPINTERVAL"))
-  WRep.frame:AddMessage(TEXT("COMMANDCOLOR") .. " -- " .. TEXT("HELPCOLOR"))
+  WRep.frame:AddMessage("help -- " .. TEXT("HELPHELP"))
+  WRep.frame:AddMessage("status -- " .. TEXT("HELPSTATUS"))
+  WRep.frame:AddMessage("announce -- " .. TEXT("HELPANNOUNCE"))
+  WRep.frame:AddMessage("guildrep -- " .. TEXT("HELPGUILD"))
+  WRep.frame:AddMessage("timeleft -- " .. TEXT("HELPTIMELEFT"))
+  WRep.frame:AddMessage("autobar -- " .. TEXT("HELPAUTOBAR"))
+  WRep.frame:AddMessage("barchange -- " .. TEXT("HELPBARCHANGE"))
+  WRep.frame:AddMessage("chat -- " .. TEXT("HELPCHAT"))
+  WRep.frame:AddMessage("combatlog -- " .. TEXT("HELPCOMBATLOG"))
+  WRep.frame:AddMessage("interval -- " .. TEXT("HELPINTERVAL"))
+  WRep.frame:AddMessage("color -- " .. TEXT("HELPCOLOR"))
   WRep.frame:AddMessage("-----------------------------------")
   WRep.frame:AddMessage(" ")
 end
@@ -451,98 +451,98 @@ function WonderRep(msg)
     local command = string.lower(msg)
     if command == "" then
       WonderRepOptions_Toggle()
-    elseif command == TEXT("COMMANDHELP") then
+    elseif command == "help" then
       WonderRep_PrintHelp()
-    elseif command == TEXT("COMMANDCOMBATLOG") then
+    elseif command == "combatlog" then
       WRep.frame = _G["ChatFrame2"]
       Wr_save.frame = false
       Wr_Status()
-    elseif command == TEXT("COMMANDCHAT") then
+    elseif command == "chat" then
       WRep.frame = _G["ChatFrame1"]
       Wr_save.frame = true
       Wr_Status()
-    elseif command == TEXT("COMMANDSTATUS") then
+    elseif command == "status" then
       Wr_Status()
-    elseif command == TEXT("COMMANDANNOUNCE") then
+    elseif command == "announce" then
       if Wr_save.AnnounceLeft == true then
         Wr_save.AnnounceLeft = false
       else
         Wr_save.AnnounceLeft = true
       end
       Wr_Status()
-    elseif command == TEXT("COMMANDGUILD") then
+    elseif command == "guildrep" then
       if Wr_save.Guild == true then
         Wr_save.Guild = false
       else
         Wr_save.Guild = true
       end
       Wr_Status()
-    elseif command == TEXT("COMMANDTIMELEFT") then
+    elseif command == "timeleft" then
       if Wr_save.ATimeLeft == true then
         Wr_save.ATimeLeft = false
       else
         Wr_save.ATimeLeft = true
       end
       Wr_Status()
-    elseif command == TEXT("COMMANDBARCHANGE") then
+    elseif command == "barchange" then
       if Wr_save.RepChange == true then
         Wr_save.RepChange = false
       else
         Wr_save.RepChange = true
       end
       Wr_Status()
-    elseif command == TEXT("COMMANDAUTOBAR") then
+    elseif command == "autobar" then
       if Wr_save.ChangeBar == true then
         Wr_save.ChangeBar = false
       else
         Wr_save.ChangeBar = true
       end
       Wr_Status()
-    elseif command == TEXT("COMMANDINTERVAL") .. " 1" then
+    elseif command == "interval 1" then
       WRep.AmountGainedInterval = 1
       Wr_save.AmountGainedInterval = 1
       Wr_Status()
-    elseif command == TEXT("COMMANDINTERVAL") .. " 50" then
+    elseif command == "interval 50" then
       WRep.AmountGainedInterval = 50
       Wr_save.AmountGainedInterval = 50
       Wr_Status()
-    elseif command == TEXT("COMMANDINTERVAL") .. " 100" then
+    elseif command == "interval 100" then
       WRep.AmountGainedInterval = 100
       Wr_save.AmountGainedInterval = 100
       Wr_Status()
-    elseif command == TEXT("COMMANDINTERVAL") .. " 150" then
+    elseif command == "interval 150" then
       WRep.AmountGainedInterval = 150
       Wr_save.AmountGainedInterval = 150
       Wr_Status()
-    elseif command == TEXT("COMMANDINTERVAL") .. " 200" then
+    elseif command == "interval 200" then
       WRep.AmountGainedInterval = 200
       Wr_save.AmountGainedInterval = 200
       Wr_Status()
-    elseif command == TEXT("COMMANDINTERVAL") .. " 250" then
+    elseif command == "interval 250" then
       WRep.AmountGainedInterval = 250
       Wr_save.AmountGainedInterval = 250
       Wr_Status()
-    elseif command == TEXT("COMMANDINTERVAL") .. " 300" then
+    elseif command == "interval 300" then
       WRep.AmountGainedInterval = 300
       Wr_save.AmountGainedInterval = 300
       Wr_Status()
-    elseif command == TEXT("COMMANDINTERVAL") .. " 350" then
+    elseif command == "interval 350" then
       WRep.AmountGainedInterval = 350
       Wr_save.AmountGainedInterval = 350
       Wr_Status()
-    elseif command == TEXT("COMMANDINTERVAL") .. " 400" then
+    elseif command == "interval 400" then
       WRep.AmountGainedInterval = 400
       Wr_save.AmountGainedInterval = 400
       Wr_Status()
-    elseif command == TEXT("COMMANDINTERVAL") .. " 450" then
+    elseif command == "interval 450" then
       WRep.AmountGainedInterval = 450
       Wr_save.AmountGainedInterval = 450
       Wr_Status()
-    elseif command == TEXT("COMMANDINTERVAL") .. " 500" then
+    elseif command == "interval 500" then
       WRep.AmountGainedInterval = 500
       Wr_save.AmountGainedInterval = 500
       Wr_Status()
-    elseif command == TEXT("COMMANDCOLOR") .. " " .. TEXT("COLORRED") then
+    elseif command == "color " .. TEXT("COLORRED") then
       WRep.Color.R = 1
       WRep.Color.G = 0
       WRep.Color.B = 0
@@ -551,7 +551,7 @@ function WonderRep(msg)
       Wr_save.Color.G = 0
       Wr_save.Color.B = 0
       WRep.frame:AddMessage("WonderRep: " .. TEXT("COLORCHANGED"), WRep.Color.R, WRep.Color.G, WRep.Color.B)
-    elseif command == TEXT("COMMANDCOLOR") .. " " .. TEXT("COLORBLUE") then
+    elseif command == "color " .. TEXT("COLORBLUE") then
       WRep.Color.R = 0
       WRep.Color.G = 0
       WRep.Color.B = 1
@@ -560,7 +560,7 @@ function WonderRep(msg)
       Wr_save.Color.G = 0
       Wr_save.Color.B = 1
       WRep.frame:AddMessage("WonderRep: " .. TEXT("COLORCHANGED"), WRep.Color.R, WRep.Color.G, WRep.Color.B)
-    elseif command == TEXT("COMMANDCOLOR") .. " " .. TEXT("COLORGREEN") then
+    elseif command == "color " .. TEXT("COLORGREEN") then
       WRep.Color.R = 0
       WRep.Color.G = 1
       WRep.Color.B = 0
@@ -569,7 +569,7 @@ function WonderRep(msg)
       Wr_save.Color.G = 1
       Wr_save.Color.B = 0
       WRep.frame:AddMessage("WonderRep: " .. TEXT("COLORCHANGED"), WRep.Color.R, WRep.Color.G, WRep.Color.B)
-    elseif command == TEXT("COMMANDCOLOR") .. " " .. TEXT("COLOREMERALD") then
+    elseif command == "color " .. TEXT("COLOREMERALD") then
       WRep.Color.R = .3
       WRep.Color.G = .8
       WRep.Color.B = .5
@@ -578,7 +578,7 @@ function WonderRep(msg)
       Wr_save.Color.G = .8
       Wr_save.Color.B = .5
       WRep.frame:AddMessage("WonderRep: " .. TEXT("COLORCHANGED"), WRep.Color.R, WRep.Color.G, WRep.Color.B)
-    elseif command == TEXT("COMMANDCOLOR") .. " " .. TEXT("COLORYELLOW") then
+    elseif command == "color " .. TEXT("COLORYELLOW") then
       WRep.Color.R = 1
       WRep.Color.G = 1
       WRep.Color.B = 0
@@ -587,7 +587,7 @@ function WonderRep(msg)
       Wr_save.Color.G = 1
       Wr_save.Color.B = 0
       WRep.frame:AddMessage("WonderRep: " .. TEXT("COLORCHANGED"), WRep.Color.R, WRep.Color.G, WRep.Color.B)
-    elseif command == TEXT("COMMANDCOLOR") .. " " .. TEXT("COLORORANGE") then
+    elseif command == "color " .. TEXT("COLORORANGE") then
       WRep.Color.R = 1
       WRep.Color.G = .61
       WRep.Color.B = 0
@@ -596,7 +596,7 @@ function WonderRep(msg)
       Wr_save.Color.G = .61
       Wr_save.Color.B = 0
       WRep.frame:AddMessage("WonderRep: " .. TEXT("COLORCHANGED"), WRep.Color.R, WRep.Color.G, WRep.Color.B)
-    elseif command == TEXT("COMMANDCOLOR") .. " " .. TEXT("COLORPURPLE") then
+    elseif command == "color " .. TEXT("COLORPURPLE") then
       WRep.Color.R = .4
       WRep.Color.G = 0
       WRep.Color.B = .6
@@ -605,7 +605,7 @@ function WonderRep(msg)
       Wr_save.Color.G = 0
       Wr_save.Color.B = .6
       WRep.frame:AddMessage("WonderRep: " .. TEXT("COLORCHANGED"), WRep.Color.R, WRep.Color.G, WRep.Color.B)
-    elseif command == TEXT("COMMANDCOLOR") .. " " .. TEXT("COLORCYAN") then
+    elseif command == "color " .. TEXT("COLORCYAN") then
       WRep.Color.R = 0
       WRep.Color.G = 1
       WRep.Color.B = 1
@@ -614,6 +614,8 @@ function WonderRep(msg)
       Wr_save.Color.G = 1
       Wr_save.Color.B = 1
       WRep.frame:AddMessage("WonderRep: " .. TEXT("COLORCHANGED"), WRep.Color.R, WRep.Color.G, WRep.Color.B)
+    else
+      WonderRep_PrintHelp()
     end
   end
 end
