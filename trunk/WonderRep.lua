@@ -1,5 +1,5 @@
 --[[
-  - VERSION: 1.6.26
+  - VERSION: 1.6.27
 
   - WonderRep: Adds all sorts of functionality for reputation changes!
 ]]
@@ -68,7 +68,7 @@ function WonderRep_OnLoad(self)
 
   -- Printing Message in Chat Frame
   if DEFAULT_CHAT_FRAME then
-    ChatFrame1:AddMessage(TEXT("LOADEDSTR") .. " 1.6.26", 1, 1, 0)
+    ChatFrame1:AddMessage(TEXT("LOADEDSTR") .. " 1.6.27", 1, 1, 0)
   end
 
   -- Don't let this function run more than once
