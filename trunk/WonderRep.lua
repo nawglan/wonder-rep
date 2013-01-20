@@ -1,5 +1,5 @@
 --[[
-  - VERSION: 1.6.27
+  - VERSION: 1.6.28
 
   - WonderRep: Adds all sorts of functionality for reputation changes!
 ]]
@@ -38,6 +38,7 @@ WRep = {
     G = 1,
     B = 0
   },
+  BufferedRepGain = "",
   AmountGainedInterval = 10,
   AmountGained = 0,
   SessionTime = 0,
@@ -54,10 +55,11 @@ function WonderRep_OnLoad(self)
     id = "WonderRep"
   }
   -- Register the game events neccesary for the addon
-  self:RegisterEvent("CHAT_MSG_COMBAT_FACTION_CHANGE")
+  self:RegisterEvent("CHAT_MSG_COMBAT_FACTION_CHANGE") -- changes in faction come in on this channel
   self:RegisterEvent("PLAYER_ENTERING_WORLD")
   self:RegisterEvent("VARIABLES_LOADED")
   self:RegisterEvent("WORLD_MAP_UPDATE")
+  self:RegisterEvent("CHAT_MSG_SYSTEM") -- New factions come in on this channel
 
   -- Register our slash command
   SLASH_WONDERREP1 = "/wonderrep"
@@ -68,7 +70,7 @@ function WonderRep_OnLoad(self)
 
   -- Printing Message in Chat Frame
   if DEFAULT_CHAT_FRAME then
-    ChatFrame1:AddMessage(TEXT("LOADEDSTR") .. " 1.6.27", 1, 1, 0)
+    ChatFrame1:AddMessage(TEXT("LOADEDSTR") .. " 1.6.28", 1, 1, 0)
   end
 
   -- Don't let this function run more than once
@@ -161,8 +163,15 @@ function WonderRep_OnEvent(self, event, ...)
   end
 
   -- Event fired when the player gets, or loses, rep in the chat frame
-  if event == "CHAT_MSG_COMBAT_FACTION_CHANGE" then
+  if event == "CHAT_MSG_COMBAT_FACTION_CHANGE" or event == "CHAT_MSG_SYSTEM" then
     WonderRep_UpdateFactions()
+    
+    if event == "CHAT_MSG_SYSTEM" then
+      if WRep.BufferedRepGain ~= "" then
+        arg1 = WRep.BufferedRepGain
+        WRep.BufferedRepGain = ""
+      end
+    end
 
     -- Reputation with <REPNAME> increased by <AMOUNT>.
     local HasIndexStart, HasIndexStop, FactionName, AmountGained = string.find(arg1, TEXT("REPMATCHSTR"))
@@ -170,7 +179,11 @@ function WonderRep_OnEvent(self, event, ...)
       -- Try the REPMATCHSTR2
       HasIndexStart, HasIndexStop, FactionName, AmountGained = string.find(arg1, TEXT("REPMATCHSTR2"))
       if HasIndexStart == nil then
+        -- still not found, probably not the string we want
         return
+      else
+        -- reset buffer
+        WRep.BufferedRepGain = ""
       end
     end
     local factionIncreasedBy = 1
@@ -185,9 +198,9 @@ function WonderRep_OnEvent(self, event, ...)
 
     -- Using the string we just made, sending to Match function
     local RepIndex, standingId, topValue, earnedValue = WonderRep_GetRepMatch(FactionName)
-    local watchedName = GetWatchedFactionInfo()
 
     if RepIndex ~= nil then
+      local watchedName = GetWatchedFactionInfo()
       -- Changes Rep bar to the rep we matched above
       if FactionName ~= watchedName then
         WRep.AmountGained = 0
@@ -243,6 +256,7 @@ function WonderRep_OnEvent(self, event, ...)
         WRep.AmountGained = 0
       end
     else
+      WRep.BufferedRepGain = arg1
       WRep.frame:AddMessage(TEXT("NEWFACTION"), WRep.Color.R, WRep.Color.G, WRep.Color.B)
     end
     return
@@ -351,7 +365,7 @@ function WonderRep_GetRepMatch(FactionName)
     end
 
     factionIndex = factionIndex + 1
-  until factionIndex > 200
+  until factionIndex > 300
 end
 
 function WonderRep_OnUpdate(self, elapsed)
