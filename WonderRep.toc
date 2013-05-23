@@ -1,5 +1,5 @@
-## Interface: 50200
-## Title: WonderRep v1.6.31
+## Interface: 50300
+## Title: WonderRep v1.6.32
 ## Notes: Adds all sorts of functionality for reputation changes!
 ## Dependencies:
 ## SavedVariablesPerCharacter: Wr_save,Wr_version,Wrl
