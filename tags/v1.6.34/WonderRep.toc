@@ -1,0 +1,10 @@
+## Interface: 60000
+## Title: WonderRep v1.6.34
+## Notes: Adds all sorts of functionality for reputation changes!
+## Dependencies:
+## SavedVariablesPerCharacter: Wr_save,Wr_version,Wrl
+Localization\Localization.xml
+WonderRepOptions.lua
+WonderRepOptions.xml
+WonderRep.lua
+WonderRep.xml
