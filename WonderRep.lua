@@ -1,5 +1,5 @@
 --[[
-  - VERSION: 1.6.33
+  - VERSION: 1.6.35
 
   - WonderRep: Adds all sorts of functionality for reputation changes!
 ]]
