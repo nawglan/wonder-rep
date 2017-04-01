@@ -1,5 +1,5 @@
 --[[
-  - VERSION: 1.6.36
+  - VERSION: 1.6.37
 
   - WonderRep: Adds all sorts of functionality for reputation changes!
 ]]
@@ -32,6 +32,11 @@ WRep = {
     [4] = TEXT("FRIEND"),        -- 25200 - 33600
     [5] = TEXT("GOODFRIEND"),    -- 33600 - 42000
     [6] = TEXT("BESTFRIEND")     -- 42000 - 42999
+  },
+  UnitsBodyguards = {
+    [1] = TEXT("BODYGUARD"),     --     0 - 10000
+    [2] = TEXT("TRUSTEDGUARD"),  -- 10000 - 20000
+    [3] = TEXT("WINGMAN")        -- 20000 - 30000
   },
   Color = {
     R = 1,
@@ -230,6 +235,14 @@ function WonderRep_OnEvent(self, event, ...)
             return
           end
           RepLeftToLevel = 8400 - (8400 * (tmpVal - tmpValInt))
+        elseif isBodyguardRep(FactionName) then
+          local tmpVal = earnedValue / 10000
+          local tmpValInt = floor(tmpVal)
+          nextStandingId = tmpValInt + 2
+          if nextStandingId > 3 then
+            return
+          end
+          RepLeftToLevel = 10000 - (10000 * (tmpVal - tmpValInt))
         else
           if nextStandingId > 9 then
             return
@@ -365,7 +378,7 @@ function WonderRep_GetRepMatch(FactionName)
     end
 
     factionIndex = factionIndex + 1
-  until factionIndex > 300
+  until factionIndex > 900
 end
 
 function WonderRep_OnUpdate(self, elapsed)
@@ -639,6 +652,8 @@ function WonderRep_GetNextRepLevelName(FactionName, standingId)
 
   if isFriendRep(FactionName) and standingId <= 6 then
     RepNextLevelName = WRep.UnitsFriends[standingId]
+  elseif isBodyguardRep(FactionName) and standingId <= 3 then
+    RepNextLevelName = WRep.UnitsBodyguards[standingId]
   elseif (standingId <= 9) then
     RepNextLevelName = WRep.Units[standingId]
   end
@@ -662,3 +677,17 @@ function isFriendRep(FactionName)
 
   return tContains(FriendRep, FactionName)
 end
+
+function isBodyguardRep(FactionName)
+  local BodyguardRep = {}
+  table.insert(BodyguardRep, TEXT("LEORAJH"))
+  table.insert(BodyguardRep, TEXT("TORMMOK"))
+  table.insert(BodyguardRep, TEXT("ISHAAL"))
+  table.insert(BodyguardRep, TEXT("VIVIANNE"))
+  table.insert(BodyguardRep, TEXT("IRONFIST"))
+  table.insert(BodyguardRep, TEXT("AEDA"))
+  table.insert(BodyguardRep, TEXT("ILLONA"))
+
+  return tContains(BodyguardRep, FactionName)
+end
+
