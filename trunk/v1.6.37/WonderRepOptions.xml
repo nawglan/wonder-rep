@@ -1,0 +1,307 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+	<Frame name="WonderRepOptionsFrame" toplevel="true" movable="true" enableMouse="true" hidden="true" parent="UIParent" enableKeyboard="true">
+		<Size>
+			<AbsDimension x="470" y="400"/>
+		</Size>
+		<Anchors>
+			<Anchor point="CENTER"/>
+		</Anchors>
+		<Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background" edgeFile="Interface\DialogFrame\UI-DialogBox-Border" tile="true">
+			<BackgroundInsets>
+				<AbsInset left="11" right="12" top="12" bottom="11"/>
+			</BackgroundInsets>
+			<TileSize>
+				<AbsValue val="32"/>
+			</TileSize>
+			<EdgeSize>
+				<AbsValue val="32"/>
+			</EdgeSize>
+		</Backdrop>
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture name="WonderRepOptionsFrameHeader" file="Interface\DialogFrame\UI-DialogBox-Header">
+					<Size>
+						<AbsDimension x="256" y="64"/>
+					</Size>
+					<Anchors>
+						<Anchor point="TOP">
+							<Offset>
+								<AbsDimension x="0" y="12"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</Texture>
+				<FontString inherits="GameFontNormal" text="WonderRep">
+					<Anchors>
+						<Anchor point="TOP" relativeTo="WonderRepOptionsFrameHeader">
+							<Offset>
+								<AbsDimension x="0" y="-14"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<FontString name="WonderRepOptions_ColorLabel" inherits="GameFontNormal" text="Color:">
+					<Anchors>
+						<Anchor point="TOPLEFT">
+							<Offset>
+								<AbsDimension x="33" y="-245"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<FontString name="WonderRepOptions_SessionTimeLabel" inherits="GameFontNormal" text="Session Time:">
+					<Anchors>
+						<Anchor point="TOPLEFT">
+							<Offset>
+								<AbsDimension x="33" y="-295"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<FontString name="WonderRepOptions_SessionTimeNumber" inherits="GameFontNormal" text="0">
+					<Anchors>
+						<Anchor point="TOPLEFT">
+							<Offset>
+								<AbsDimension x="150" y="-295"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Button name="WonderRepOptionsColorDropDown" inherits="UIDropDownMenuTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="30" y="-260"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnShow>
+						WonderRepOptionsColorDropDown_OnLoad();
+					</OnShow>
+				</Scripts>
+			</Button>
+			<CheckButton name="WonderRepOptionsFrameAnnounce" inherits="OptionsCheckButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="30" y="-40"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGANNOUNCE") .. " -- /wr announce");
+						self.tooltipText = Localization.GetClientString("WonderRep", "HELPANNOUNCE");
+					</OnLoad>
+					<OnClick>
+						WonderRepOptions_AnnounceToggle();
+					</OnClick>
+				</Scripts>
+			</CheckButton>
+			<CheckButton name="WonderRepOptionsFrameAutoBar" inherits="OptionsCheckButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="30" y="-65"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGAUTOBAR") .. " -- /wr autobar");
+						self.tooltipText = Localization.GetClientString("WonderRep", "HELPAUTOBAR");
+					</OnLoad>
+					<OnClick>
+						WonderRepOptions_AutoBarToggle();
+					</OnClick>
+				</Scripts>
+			</CheckButton>
+			<CheckButton name="WonderRepOptionsFrameBarChange" inherits="OptionsCheckButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="30" y="-90"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGBARCHANGE") .. " -- /wr barchange");
+						self.tooltipText = Localization.GetClientString("WonderRep", "HELPBARCHANGE");
+					</OnLoad>
+					<OnClick>
+						WonderRepOptions_BarChangeToggle();
+					</OnClick>
+				</Scripts>
+			</CheckButton>
+			<CheckButton name="WonderRepOptionsFrameChat" inherits="OptionsCheckButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="30" y="-115"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGCHAT") .. " -- /wr chat");
+						self.tooltipText = Localization.GetClientString("WonderRep", "HELPCHAT");
+					</OnLoad>
+					<OnClick>
+						WonderRepOptions_ChatToggle();
+					</OnClick>
+				</Scripts>
+			</CheckButton>
+			<CheckButton name="WonderRepOptionsFrameCombatLog" inherits="OptionsCheckButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="190" y="-115"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGCOMBAT") .. " -- /wr combatlog");
+						self.tooltipText = Localization.GetClientString("WonderRep", "HELPCOMBAT");
+					</OnLoad>
+					<OnClick>
+						WonderRepOptions_ChatToggle();
+					</OnClick>
+				</Scripts>
+			</CheckButton>
+			<CheckButton name="WonderRepOptionsFrameTime" inherits="OptionsCheckButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="30" y="-140"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGTIMELEFT") .. " -- /wr timeleft");
+						self.tooltipText = Localization.GetClientString("WonderRep", "HELPTIMELEFT");
+					</OnLoad>
+					<OnClick>
+						WonderRepOptions_TimeToggle();
+					</OnClick>
+				</Scripts>
+			</CheckButton>
+			<CheckButton name="WonderRepOptionsGuildRep" inherits="OptionsCheckButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="30" y="-165"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGGUILD") .. " -- /wr guildrep");
+						self.tooltipText = Localization.GetClientString("WonderRep", "HELPGUILD");
+					</OnLoad>
+					<OnClick>
+						WonderRepOptions_GuildToggle();
+					</OnClick>
+				</Scripts>
+			</CheckButton>
+			<Slider name="WonderRepSliderInterval" inherits="OptionsSliderTemplate">
+				<Size>
+					<AbsDimension x="380" y="16"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOP">
+						<Offset>
+							<AbsDimension x="0" y="-210" />
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGINTERVAL") .. " -- /wr interval");
+						_G[self:GetName().."High"]:SetText();
+						_G[self:GetName().."Low"]:SetText();
+						self:SetMinMaxValues(0,500);
+						self:SetValueStep(50);
+						self.tooltipText = Localization.GetClientString("WonderRep", "DIALOGINTERVALTOOLTIP");
+					</OnLoad>
+					<OnValueChanged>
+						Wr_save.AmountGainedLevel = self:GetValue();
+						WonderRepOptions_IntervalSlider();
+						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGINTERVALVALUE") .. self:GetValue() .. "");
+					</OnValueChanged>
+				</Scripts>
+			</Slider>
+			<Button name="WonderRepFrameReset" inherits="OptionsButtonTemplate" text="Reset Session Time">
+				<Size>
+					<AbsDimension x="210" y="20"/>
+				</Size>
+				<Anchors>
+					<Anchor point="BOTTOM">
+						<Offset>
+							<AbsDimension x="0" y="65"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGRESET"));
+					</OnLoad>
+					<OnClick>
+						WonderRepOptions_ResetTime();
+					</OnClick>
+				</Scripts>
+			</Button>
+			<Button name="WonderRepFrameHelp" inherits="OptionsButtonTemplate" text="Option Descriptions">
+				<Size>
+					<AbsDimension x="210" y="20"/>
+				</Size>
+				<Anchors>
+					<Anchor point="BOTTOM">
+						<Offset>
+							<AbsDimension x="0" y="40"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGDESCRIPTIONS"));
+					</OnLoad>
+					<OnClick>
+						WonderRep_PrintHelp();
+					</OnClick>
+				</Scripts>
+			</Button>
+			<Button name="WonderRepOptionsFrameDone" inherits="OptionsButtonTemplate" text="Close">
+				<Anchors>
+					<Anchor point="BOTTOM">
+						<Offset>
+							<AbsDimension x="0" y="15"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						_G[self:GetName().."Text"]:SetText(Localization.GetClientString("WonderRep", "DIALOGCLOSE"));
+					</OnLoad>
+					<OnClick>
+						WonderRepOptions_Toggle();
+					</OnClick>
+				</Scripts>
+			</Button>
+		</Frames>
+		<Scripts>
+			<OnLoad>
+        _G["WonderRepOptions_ColorLabel"]:SetText(Localization.GetClientString("WonderRep","COLORLABEL"));
+        _G["WonderRepOptions_SessionTimeLabel"]:SetText(Localization.GetClientString("WonderRep","SESSIONLABEL"));
+				WonderRepOptions_OnLoad();
+			</OnLoad>
+		</Scripts>
+	</Frame>
+</Ui>
