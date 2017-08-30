@@ -1,9 +1,9 @@
-## Interface: 70200
-## Title: WonderRep v1.6.37
+## Interface: 70300
+## Title: WonderRep v1.6.38
 ## Notes: Adds all sorts of functionality for reputation changes!
 ## Dependencies:
 ## SavedVariablesPerCharacter: Wr_save,Wr_version,Wrl
-## X-Curse-Packaged-Version: v1.6.37
+## X-Curse-Packaged-Version: v1.6.38
 ## X-Curse-Project-Name: WonderRep (Reputation)
 ## X-Curse-Project-ID: wonder-rep-reputation
 ## X-Curse-Repository-ID: wow/wonder-rep-reputation/mainline
