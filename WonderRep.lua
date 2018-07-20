@@ -1,5 +1,5 @@
 --[[
-  - VERSION: 1.6.38
+  - VERSION: 1.6.39
 
   - WonderRep: Adds all sorts of functionality for reputation changes!
 ]]
@@ -61,9 +61,9 @@ function WonderRep_OnLoad(self)
   }
   -- Register the game events neccesary for the addon
   self:RegisterEvent("CHAT_MSG_COMBAT_FACTION_CHANGE") -- changes in faction come in on this channel
-  self:RegisterEvent("PLAYER_ENTERING_WORLD")
+  --self:RegisterEvent("PLAYER_ENTERING_WORLD")
   self:RegisterEvent("VARIABLES_LOADED")
-  self:RegisterEvent("WORLD_MAP_UPDATE")
+  --self:RegisterEvent("WORLD_MAP_UPDATE")
   self:RegisterEvent("CHAT_MSG_SYSTEM") -- New factions come in on this channel
 
   -- Register our slash command
@@ -274,7 +274,7 @@ function WonderRep_OnEvent(self, event, ...)
     end
     return
   end
-
+--[[
   -- Event fired when player finish loading the game (zone, login, reloadui)
   -- We use this event to check where the player is using GetCurrentMapContinent(),
   -- we can tell if the player if in a BG, if they are we find out which
@@ -359,6 +359,7 @@ function WonderRep_OnEvent(self, event, ...)
     end
     return
   end
+  --]]
 end
 
 ------------
