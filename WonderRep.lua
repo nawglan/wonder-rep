@@ -1,694 +1,665 @@
---[[
-  - VERSION: 1.6.39
+print("hello world")
+local addonName, addonSpace = ...
+local addon   = LibStub('AceAddon-3.0'):NewAddon(addonSpace, addonName, 'AceEvent-3.0', 'AceTimer-3.0')
 
-  - WonderRep: Adds all sorts of functionality for reputation changes!
-]]
+WR = addon
 
-------------
--- Global Vars, and strings
-------------
+local timerId = nil
 
--- Interface to the Localization lib
-Localization.SetAddonDefault("WonderRep", "enUS")
-local function TEXT(key) return Localization.GetClientString("WonderRep", key) end
+local L = LibStub('AceLocale-3.0'):GetLocale(addonName)
 
-WRep = {
-  defaultframe = "ChatFrame1",
-  Units = {
-    [1] = TEXT("HATED"),
-    [2] = TEXT("HOSTILE"),
-    [3] = TEXT("UNFRIENDLY"),
-    [4] = TEXT("NEUTRAL"),
-    [5] = TEXT("FRIENDLY"),
-    [6] = TEXT("HONORED"),
-    [7] = TEXT("REVERED"),
-    [8] = TEXT("EXALTED"),
-    [9] = TEXT("MAXEXALTED")
-  },
-  UnitsFriends = {
-    [1] = TEXT("STRANGER"),      --     0 -  8400
-    [2] = TEXT("ACQUAINTANCE"),  --  8400 - 16800
-    [3] = TEXT("BUDDY"),         -- 16800 - 25200
-    [4] = TEXT("FRIEND"),        -- 25200 - 33600
-    [5] = TEXT("GOODFRIEND"),    -- 33600 - 42000
-    [6] = TEXT("BESTFRIEND")     -- 42000 - 42999
-  },
-  UnitsBodyguards = {
-    [1] = TEXT("BODYGUARD"),     --     0 - 10000
-    [2] = TEXT("TRUSTEDGUARD"),  -- 10000 - 20000
-    [3] = TEXT("WINGMAN")        -- 20000 - 30000
-  },
-  Color = {
-    R = 1,
-    G = 1,
-    B = 0
-  },
-  BufferedRepGain = "",
-  AmountGainedInterval = 10,
-  AmountGained = 0,
-  SessionTime = 0,
-  TimeSave = 0
+local VERSION = GetAddOnMetadata(addonName, 'Version')
+
+local libLDB  = LibStub('LibDataBroker-1.1')
+local libQTip = LibStub('LibQTip-1.0')
+local WRTip -- Tooltip object
+
+
+local libRealmInfo = LibStub("LibRealmInfo")
+
+local amountGained = 0
+
+local db
+local current, currentMaxXp, startXp
+local sessionTime
+
+local sv_defaults = {
+    global = {
+        display_level = true,
+        display_name = true,
+        display_percent = true,
+        display_time = true,
+        change_bar = false,
+        change_bar_announce = true,
+        announce_time_left = true,
+        announce_left = true
+    },
+    char = {
+        session = 0,
+        sesstionTime = 0,
+        bufferedRepGain = "",
+        reputation = {
+
+        }
+    }
 }
 
-Wrl = {}
-
-------------
--- Load Function
-------------
-function WonderRep_OnLoad(self)
-  self.registry = {
-    id = "WonderRep"
-  }
-  -- Register the game events neccesary for the addon
-  self:RegisterEvent("CHAT_MSG_COMBAT_FACTION_CHANGE") -- changes in faction come in on this channel
-  --self:RegisterEvent("PLAYER_ENTERING_WORLD")
-  self:RegisterEvent("VARIABLES_LOADED")
-  --self:RegisterEvent("WORLD_MAP_UPDATE")
-  self:RegisterEvent("CHAT_MSG_SYSTEM") -- New factions come in on this channel
-
-  -- Register our slash command
-  SLASH_WONDERREP1 = "/wonderrep"
-  SLASH_WONDERREP2 = "/wr"
-  SlashCmdList["WONDERREP"] = function(msg)
-    WonderRep(msg)
-  end
-
-  -- Printing Message in Chat Frame
-  if DEFAULT_CHAT_FRAME then
-    ChatFrame1:AddMessage(TEXT("LOADEDSTR") .. " 1.6.33", 1, 1, 0)
-  end
-
-  -- Don't let this function run more than once
-  WonderRep_OnLoad = nil
-end
-
-function WonderRep_UpdateFactions()
-  local factionIndex = 1
-  local lastFactionName = ""
-
-  -- update known factions
-  repeat
-    local name = GetFactionInfo(factionIndex)
-    if name == lastFactionName then break end
-    lastFactionName = name
-    if name then
-      if not Wrl[name] then
-        Wrl[name] = {
-          gained = 0
-        }
-      end
-    end
-    factionIndex = factionIndex + 1
-  until factionIndex > 200
-end
-
-function WonderRep_LoadSavedVars()
-  if not Wr_version then
-    Wr_version = 180
-  end
-
-  if not Wr_save then
-    Wr_save = {
-      AnnounceLeft = true,
-      RepChange = true,
-      ChangeBar = true,
-      frame = true,
-      ATimeLeft = true,
-      Guild = true,
-      Color = {
-        id = 4,
-        R = 1,
-        G = 1,
-        B = 0
-      },
-      AmountGainedInterval = 1
-    }
-    ChatFrame1:AddMessage(TEXT("NEWLOADSTR"), 1, 1, 0)
-  end
-
-  if Wr_version < 170 then
-    Wr_save.ATimeLeft = true
-    Wr_save.AmountGainedInterval = Wr_save.AmountGainedLevel
-    Wr_save.Color = {
-      id = Wr_save.colorid,
-      R = Wr_save.colora,
-      G = Wr_save.colorb,
-      B = Wr_save.colorc
-    }
-    Wr_version = 180
-  end
-  if Wr_version < 180 then
-    Wr_save.Guild = true
-  end
-
-  if Wr_save.frame then
-    WRep.frame = _G["ChatFrame1"]
-  else
-    WRep.frame = _G["ChatFrame2"]
-  end
-
-  WRep.Color.R = Wr_save.Color.R
-  WRep.Color.G = Wr_save.Color.G
-  WRep.Color.B = Wr_save.Color.B
-  WRep.AmountGainedInterval = Wr_save.AmountGainedInterval
-  WRep.ChangeBar = Wr_save.ChangeBar
-
-  Wr_Status()
-end
-
-------------
--- Event Functions
-------------
-function WonderRep_OnEvent(self, event, ...)
-  local arg1 = ...
-
-  if event == "VARIABLES_LOADED" then
-    WonderRep_LoadSavedVars()
-    return
-  end
-
-  -- Event fired when the player gets, or loses, rep in the chat frame
-  if event == "CHAT_MSG_COMBAT_FACTION_CHANGE" or event == "CHAT_MSG_SYSTEM" then
-    WonderRep_UpdateFactions()
+local options = {
     
-    if event == "CHAT_MSG_SYSTEM" then
-      if WRep.BufferedRepGain ~= "" then
-        arg1 = WRep.BufferedRepGain
-        WRep.BufferedRepGain = ""
-      end
+}
+
+local repLevels = {
+    [1] = L["HATED"],
+    [2] = L["HOSTILE"],
+    [3] = L["UNFRIENDLY"],
+    [4] = L["NEUTRAL"],
+    [5] = L["FRIENDLY"],
+    [6] = L["HONORED"],
+    [7] = L["REVERED"],
+    [8] = L["EXALTED"],
+    [9] = L["MAXEXALTED"]
+}
+
+local unitsFriends = {
+    [1] = L["Stranger"],        --     0 -  8400
+    [2] = L["Acquaintance"],    --  8400 - 16800
+    [3] = L["Buddy"],           -- 16800 - 25200
+    [4] = L["Friend"],          -- 25200 - 33600
+    [5] = L["Good Friend"],     -- 33600 - 42000
+    [6] = L["Best Friend"]      -- 42000 - 42999
+}
+
+local unitsBodyguards = {
+    [1] = L["Bodyguard"],           --     0 - 10000
+    [2] = L["Trusted Bodyguard"],   -- 10000 - 20000
+    [3] = L["Personal Wingman"]     -- 20000 - 30000
+}
+
+local function GetRegionStartOfWeek()
+    local region = libRealmInfo:GetCurrentRegion()
+    if region == "US" then
+        return 3
+    elseif region == "EU" then
+        return 4
+    else
+        return 3 -- FIXME
+    end
+end
+
+
+function addon:PLAYER_ENTERING_WORLD(event, ...)
+    local isInitialLogin, isReloadingUi = ...
+
+    db = LibStub("AceDB-3.0"):New("WonderRep_DB", sv_defaults, true)
+
+    if isInitialLogin then
+        for k in pairs(db.char.reputation) do
+            db.char.reputation[k].gainedSession = 0
+        end
+        db.char.session = 0
+        db.char.sessionTime = 0
+        db.char.lastRepGained = nil
+    end
+    addon:ConfigFrame()
+    self:RegisterEvent("CHAT_MSG_COMBAT_FACTION_CHANGE") -- changes in faction come in on this channel
+    self:RegisterEvent("CHAT_MSG_SYSTEM") -- New factions come in on this channel
+    --self:RegisterEvent("AZERITE_ITEM_EXPERIENCE_CHANGED")
+    --self:RegisterEvent("AZERITE_ITEM_POWER_LEVEL_CHANGED")
+
+    self:UnregisterEvent("PLAYER_ENTERING_WORLD")
+    self.PLAYER_ENTERING_WORLD = nil
+    self:CheckStatsResets()
+    self:UpdateFactions()
+    --self:SetAzeriteVars()
+    self:SetBrokerText()
+
+end
+
+local function PrintHelp()
+    print(" ")
+    print("-----------------------------------")
+    print(L["WonderRep commands help:"])
+    print(L["Use /wonderrep <command> or /wr <command> to perform the following commands:"])
+    print("help -- " .. L["You are viewing it!"])
+    print("status -- " .. L["Shows your current settings."])
+    print("announce -- " .. L["Toggles the displaying of reputation points needed to next level message."])
+    --print("timeleft -- " .. L("HELPTIMELEFT"))
+    --print("autobar -- " .. L("HELPAUTOBAR"))
+    --print("barchange -- " .. L("HELPBARCHANGE"))
+    --print("interval -- " .. L("HELPINTERVAL"))
+    --print("color -- " .. L("HELPCOLOR"))
+    print("-----------------------------------")
+    print(" ")
+end
+
+function addon:CHAT_MSG_COMBAT_FACTION_CHANGE(event, ...)
+    arg1 = ...
+    addon:UpdateFactions()
+    -- Reputation with <REPNAME> increased by <AMOUNT>.
+    local HasIndexStart, HasIndexStop, FactionName, AmountGained = string.find(arg1, L["Reputation with (.*) increased by (%d+)."])
+    if HasIndexStart == nil then
+        -- Try the REPMATCHSTR2
+        HasIndexStart, HasIndexStop, FactionName, AmountGained = string.find(arg1, L["REPMATCHSTR2"])
+        if HasIndexStart == nil then
+            -- still not found, probably not the string we want
+            return
+        else
+            -- reset buffer
+            db.char.BufferedRepGain = ""
+        end
     end
 
-    -- Reputation with <REPNAME> increased by <AMOUNT>.
-    local HasIndexStart, HasIndexStop, FactionName, AmountGained = string.find(arg1, TEXT("REPMATCHSTR"))
-    if HasIndexStart == nil then
-      -- Try the REPMATCHSTR2
-      HasIndexStart, HasIndexStop, FactionName, AmountGained = string.find(arg1, TEXT("REPMATCHSTR2"))
-      if HasIndexStart == nil then
-        -- still not found, probably not the string we want
-        return
-      else
-        -- reset buffer
-        WRep.BufferedRepGain = ""
-      end
-    end
     local factionIncreasedBy = 1
     factionIncreasedBy = AmountGained + 0 -- ensure that the string value is converted to an integer
-
-    if FactionName == TEXT("GUILD") then
-      if not Wr_save.Guild then
+    if FactionName == L["Guild"] then
         return
-      end
-      FactionName = GetGuildInfo("player");
     end
 
-    -- Using the string we just made, sending to Match function
-    local RepIndex, standingId, topValue, earnedValue = WonderRep_GetRepMatch(FactionName)
+    local RepIndex, standingId, topValue, earnedValue = addon:GetRepMatch(FactionName)
 
     if RepIndex ~= nil then
-      local watchedName = GetWatchedFactionInfo()
-      -- Changes Rep bar to the rep we matched above
-      if FactionName ~= watchedName then
-        WRep.AmountGained = 0
-        if Wr_save.ChangeBar == true then
-          SetWatchedFactionIndex(RepIndex)
-          if Wr_save.RepChange == true then
-            WRep.frame:AddMessage("WonderRep: " .. TEXT("REPBARCHANGED") .. " " .. FactionName .. ".", WRep.Color.R, WRep.Color.G, WRep.Color.B)
-          end
-        end
-      end
+        db.char.lastSaved = time()
 
-      Wrl[FactionName].gained = Wrl[FactionName].gained + factionIncreasedBy
-      WRep.AmountGained = WRep.AmountGained + factionIncreasedBy
+        db.char.reputation[FactionName].gainedSession = db.char.reputation[FactionName].gainedSession + factionIncreasedBy
+        db.char.reputation[FactionName].gainedDay = db.char.reputation[FactionName].gainedDay + factionIncreasedBy
+        db.char.reputation[FactionName].gainedWeek = db.char.reputation[FactionName].gainedWeek + factionIncreasedBy
+        amountGained = amountGained + factionIncreasedBy
 
-      -- Have we gained more rep than the reporting level?
-      if WRep.AmountGained >= WRep.AmountGainedInterval then
         local nextStandingId = standingId + 1
-        local RepLeftToLevel = 0
+        local repLeftToLevel = 0
 
-        -- Friend reputation doesn't have same amount of faction needed for each level
-        -- and the standing id doesn't line up either
-        if isFriendRep(FactionName) then
-          local tmpVal = earnedValue / 8400
-          local tmpValInt = floor(tmpVal)
-          nextStandingId = tmpValInt + 2
-          if nextStandingId > 6 then
-            return
-          end
-          RepLeftToLevel = 8400 - (8400 * (tmpVal - tmpValInt))
-        elseif isBodyguardRep(FactionName) then
-          local tmpVal = earnedValue / 10000
-          local tmpValInt = floor(tmpVal)
-          nextStandingId = tmpValInt + 2
-          if nextStandingId > 3 then
-            return
-          end
-          RepLeftToLevel = 10000 - (10000 * (tmpVal - tmpValInt))
+        if addon:isFriendRep(FactionName) then
+            local tmpVal = earnedValue / 8400
+            local tmpValInt = floor(tmpVal)
+            nextStandingId = tmpValInt + 2
+            if nextStandingId > 6 then
+                return
+            end
+            repLeftToLevel = 8400 - (8400 * (tmpVal - tmpValInt))
+        elseif addon:isBodyguardRep(FactionName) then
+            local tmpVal = earnedValue / 10000
+            local tmpValInt = floor(tmpVal)
+            nextStandingId = tmpValInt + 2
+            if nextStandingId > 3 then
+                return
+            end
+            repLeftToLevel = 10000 - (10000 * (tmpVal - tmpValInt))
         else
-          if nextStandingId > 9 then
-            return
-          end
-          RepLeftToLevel = topValue - earnedValue
-        end
-
-        local RepNextLevelName = WonderRep_GetNextRepLevelName(FactionName, nextStandingId)
-        local RepGained = Wrl[FactionName].gained
-        local KillsToNext = ceil(.5 + (RepLeftToLevel / factionIncreasedBy))
-
-        if RepLeftToLevel < factionIncreasedBy then
-          KillsToNext = 1
-        end
-
-        local EstimatedTimeTolevel = RepLeftToLevel / (RepGained / WRep.SessionTime)
-        if Wr_save.AnnounceLeft == true and Wr_save.ATimeLeft == true then
-          WRep.frame:AddMessage(string.format("WonderRep: " .. TEXT("REPSTRFULL"), RepLeftToLevel, FactionName, RepNextLevelName, KillsToNext, RepGained, WonderRep_TimeText(EstimatedTimeTolevel), RepNextLevelName) , WRep.Color.R, WRep.Color.G, WRep.Color.B)
-        elseif Wr_save.AnnounceLeft == true then
-          WRep.frame:AddMessage(string.format("WonderRep: " .. TEXT("REPSTRLEFT"), RepLeftToLevel, FactionName, RepNextLevelName, KillsToNext), WRep.Color.R, WRep.Color.G, WRep.Color.B)
-        elseif Wr_save.ATimeLeft == true then
-          WRep.frame:AddMessage(string.format("WonderRep: " .. TEXT("REPSTRTIME"), RepGained, FactionName, WonderRep_TimeText(EstimatedTimeTolevel), RepNextLevelName), WRep.Color.R, WRep.Color.G, WRep.Color.B)
-        end
-        WRep.AmountGained = 0
-      end
-    else
-      WRep.BufferedRepGain = arg1
-      WRep.frame:AddMessage(TEXT("NEWFACTION"), WRep.Color.R, WRep.Color.G, WRep.Color.B)
-    end
-    return
-  end
---[[
-  -- Event fired when player finish loading the game (zone, login, reloadui)
-  -- We use this event to check where the player is using GetCurrentMapContinent(),
-  -- we can tell if the player if in a BG, if they are we find out which
-  if event == "PLAYER_ENTERING_WORLD" then
-    -- Variable to hold if player is Horde or Alliance
-    local HordeOrAlliance = UnitFactionGroup("player")
-    SetMapToCurrentZone()
-    local x = GetCurrentMapContinent()
-    local FactionName = ""
-
-    if x == -1 then
-      local i = 0
-      for i = 1, GetMaxBattlefieldID() do
-        local status, mapName, instanceID = GetBattlefieldStatus(i)
-        if instanceID ~= 0 then
-          if mapName == TEXT("ARATHIBASIN") then
-            if HordeOrAlliance == "Horde" then
-              FactionName = TEXT("DEFILERS")
-            else
-              FactionName = TEXT("LEAGUEARATHOR")
+            if nextStandingId > 9 then
+                return
             end
-          elseif mapName == TEXT("WARSONGGULCH") then
-            if HordeOrAlliance == "Horde" then
-              FactionName = TEXT("OUTRIDERS")
-            else
-              FactionName = TEXT("SENTINELS")
-            end
-          elseif mapName == TEXT("ALTERACVALLEY") then
-            if HordeOrAlliance == "Horde" then
-              FactionName = TEXT("FROSTWOLF")
-            else
-              FactionName = TEXT("STORMPIKE")
-            end
-          else
-            WRep.frame:AddMessage("We have a problem - 1")
-          end
+            repLeftToLevel = topValue - earnedValue
         end
-      end
 
-      -- Not a mapName we are interested in.
-      if FactionName == "" then
-        return
-      end
+        local RepNextLevelName = addon:GetNextRepLevelName(FactionName, nextStandingId)
+        local KillsToNext = ceil(.5 + (repLeftToLevel / factionIncreasedBy))
+        local estimatedTimeTolevel = repLeftToLevel / (db.char.reputation[FactionName].gainedSession / db.char.sessionTime)
 
-      local watched_name = GetWatchedFactionInfo()
-      local RepIndex, standingId = WonderRep_GetRepMatch(FactionName)
-      if standingId == 8 then
-        return
-      end
-      if FactionName ~= watched_name then
-        SetWatchedFactionIndex(RepIndex)
-        WRep.frame:AddMessage("WonderRep: " .. TEXT("REPBARCHANGED") .." " .. FactionName .. ".", WRep.Color.R, WRep.Color.G, WRep.Color.B)
-      end
+        if db.global.announce_left == true and db.global.announce_time_left == true then
+            print(string.format("WonderRep: " .. L['REPSTRFULL'], repLeftToLevel, FactionName, RepNextLevelName, KillsToNext, db.char.reputation[FactionName].gainedDay, addon:TimeTextMed(estimatedTimeTolevel), RepNextLevelName))
+        end        
+
+        db.char.lastRepGained = FactionName
+        db.char.lastRepGainedIndex = RepIndex
+        if self:TimeLeft(timerId) == 0 then
+            timerId = self:ScheduleTimer('ChangeWatched', 1)
+        end
     end
-  end
-
-  if event == "WORLD_MAP_UPDATE" then
-    local x,y = GetPlayerMapPosition("player")
-    if x and y == 0 then -- should this be x == 0 and y == 0?
-      local InstanceName = GetRealZoneText()
-      local FactionName = ""
-      if InstanceName == TEXT("ZULGURUB") then
-        FactionName = TEXT("ZANDALAR")
-      elseif InstanceName == TEXT("STRATHOLME") or InstanceName == TEXT("NAXXRAMAS") then
-        FactionName = TEXT("ARGENTDAWN")
-      end
-
-      -- Not an instance we are interested in.
-      if FactionName == "" then
-        return
-      end
-
-      local RepIndex, standingId = WonderRep_GetRepMatch(FactionName)
-      if standingId == 8 then
-        return
-      end
-      local WatchedName = GetWatchedFactionInfo()
-      if FactionName ~= WatchedName then
-        SetWatchedFactionIndex(RepIndex)
-        WRep.frame:AddMessage("WonderRep: " .. TEXT("REPBARCHANGED") .." " .. FactionName .. ".", WRep.Color.R, WRep.Color.G, WRep.Color.B)
-      end
-    end
-    return
-  end
-  --]]
 end
 
-------------
--- Reputation pharsing and math function
-------------
-function WonderRep_GetRepMatch(FactionName)
-  local factionIndex = 1
-  local lastFactionName
-  repeat
-    local name, description, standingId, bottomValue, topValue, earnedValue, atWarWith,
-      canToggleAtWar, isHeader, isCollapsed, hasRep, isWatched, isChild = GetFactionInfo(factionIndex)
-    if name == lastFactionName then break end
-    lastFactionName = name
-
-    if name == FactionName then
-      return factionIndex, standingId, topValue, earnedValue
-    end
-
-    factionIndex = factionIndex + 1
-  until factionIndex > 900
-end
-
-function WonderRep_OnUpdate(self, elapsed)
-  WRep.TimeSave = WRep.TimeSave + elapsed
-  if WRep.TimeSave > 0.5 then
-    WRep.SessionTime = WRep.SessionTime + WRep.TimeSave
-    WRep.TimeSave = 0
-  end
-end
-
-------------
--- Printing Functions
-------------
-function Wr_Status()
-  WRep.frame:AddMessage(TEXT("STATUS"), WRep.Color.R, WRep.Color.G, WRep.Color.B)
-
-  if Wr_save.RepChange == true then
-    WRep.frame:AddMessage("WonderRep " .. TEXT("ANNOUNCE"), WRep.Color.R, WRep.Color.G, WRep.Color.B)
-  else
-    WRep.frame:AddMessage("WonderRep " .. TEXT("NOANNOUNCE"), WRep.Color.R, WRep.Color.G, WRep.Color.B)
-  end
-  if Wr_save.ChangeBar == true then
-    WRep.frame:AddMessage("WonderRep " .. TEXT("CHANGEBAR"), WRep.Color.R, WRep.Color.G, WRep.Color.B)
-  else
-    WRep.frame:AddMessage("WonderRep " .. TEXT("NOCHANGEBAR"), WRep.Color.R, WRep.Color.G, WRep.Color.B)
-  end
-  if Wr_save.AnnounceLeft == true then
-    WRep.frame:AddMessage("WonderRep " .. string.format(TEXT("REPLEFT"), WRep.AmountGainedInterval), WRep.Color.R, WRep.Color.G, WRep.Color.B)
-  else
-    WRep.frame:AddMessage("WonderRep " .. TEXT("NOREPLEFT"), WRep.Color.R, WRep.Color.G, WRep.Color.B)
-  end
-  if Wr_save.ATimeLeft == true then
-    WRep.frame:AddMessage("WonderRep " .. string.format(TEXT("TIMELEFT"), WRep.AmountGainedInterval), WRep.Color.R, WRep.Color.G, WRep.Color.B)
-  else
-    WRep.frame:AddMessage("WonderRep " .. TEXT("NOTIMELEFT"), WRep.Color.R, WRep.Color.G, WRep.Color.B)
-  end
-  if Wr_save.Guild == true then
-    WRep.frame:AddMessage("WonderRep " .. string.format(TEXT("PROCESSGUILD"), WRep.AmountGainedInterval), WRep.Color.R, WRep.Color.G, WRep.Color.B)
-  else
-    WRep.frame:AddMessage("WonderRep " .. TEXT("NOPROCESSGUILD"), WRep.Color.R, WRep.Color.G, WRep.Color.B)
-  end
-  if Wr_save.frame == true then
-    WRep.frame:AddMessage("WonderRep " .. TEXT("SHOWCHATFRAME"), WRep.Color.R, WRep.Color.G, WRep.Color.B)
-  else
-    WRep.frame:AddMessage("WonderRep " .. TEXT("SHOWCOMBATLOG"), WRep.Color.R, WRep.Color.G, WRep.Color.B)
-  end
-end
-
-function WonderRep_PrintHelp()
-  WRep.frame:AddMessage(" ")
-  WRep.frame:AddMessage("-----------------------------------")
-  WRep.frame:AddMessage(TEXT("HELPTITLE"))
-  WRep.frame:AddMessage(TEXT("HELPSLASH"))
-  WRep.frame:AddMessage("help -- " .. TEXT("HELPHELP"))
-  WRep.frame:AddMessage("status -- " .. TEXT("HELPSTATUS"))
-  WRep.frame:AddMessage("announce -- " .. TEXT("HELPANNOUNCE"))
-  WRep.frame:AddMessage("guildrep -- " .. TEXT("HELPGUILD"))
-  WRep.frame:AddMessage("timeleft -- " .. TEXT("HELPTIMELEFT"))
-  WRep.frame:AddMessage("autobar -- " .. TEXT("HELPAUTOBAR"))
-  WRep.frame:AddMessage("barchange -- " .. TEXT("HELPBARCHANGE"))
-  WRep.frame:AddMessage("chat -- " .. TEXT("HELPCHAT"))
-  WRep.frame:AddMessage("combatlog -- " .. TEXT("HELPCOMBATLOG"))
-  WRep.frame:AddMessage("interval -- " .. TEXT("HELPINTERVAL"))
-  WRep.frame:AddMessage("color -- " .. TEXT("HELPCOLOR"))
-  WRep.frame:AddMessage("-----------------------------------")
-  WRep.frame:AddMessage(" ")
-end
-
-function WonderRep_TimeText(s)
-  local days = floor(s/24/60/60); s = mod(s, 24*60*60)
-  local hours = floor(s/60/60); s = mod(s, 60*60)
-  local minutes = floor(s/60); s = mod(s, 60)
-  local seconds = s
-
-  local timeText = ""
-  if days ~= 0 then
-    timeText = timeText..format("%d" .. TEXT("DAYS") .. " ", days)
-  end
-  if hours ~= 0 then
-    timeText = timeText..format("%d" .. TEXT("HOURS") .. " ", hours)
-  end
-  if minutes ~= 0 then
-    timeText = timeText..format("%d" .. TEXT("MINUTES") .. " ", minutes)
-  end
-  if seconds ~= 0 then
-    timeText = timeText..format("%d" .. TEXT("SECONDS") .. " ", seconds)
-  end
-
-  return timeText
-end
-
-------------
--- Slash Function
-------------
-function WonderRep(msg)
-  if msg then
-    local command = string.lower(msg)
-    if command == "" then
-      WonderRepOptions_Toggle()
-    elseif command == "help" then
-      WonderRep_PrintHelp()
-    elseif command == "combatlog" then
-      WRep.frame = _G["ChatFrame2"]
-      Wr_save.frame = false
-      Wr_Status()
-    elseif command == "chat" then
-      WRep.frame = _G["ChatFrame1"]
-      Wr_save.frame = true
-      Wr_Status()
-    elseif command == "status" then
-      Wr_Status()
-    elseif command == "announce" then
-      if Wr_save.AnnounceLeft == true then
-        Wr_save.AnnounceLeft = false
-      else
-        Wr_save.AnnounceLeft = true
-      end
-      Wr_Status()
-    elseif command == "guildrep" then
-      if Wr_save.Guild == true then
-        Wr_save.Guild = false
-      else
-        Wr_save.Guild = true
-      end
-      Wr_Status()
-    elseif command == "timeleft" then
-      if Wr_save.ATimeLeft == true then
-        Wr_save.ATimeLeft = false
-      else
-        Wr_save.ATimeLeft = true
-      end
-      Wr_Status()
-    elseif command == "barchange" then
-      if Wr_save.RepChange == true then
-        Wr_save.RepChange = false
-      else
-        Wr_save.RepChange = true
-      end
-      Wr_Status()
-    elseif command == "autobar" then
-      if Wr_save.ChangeBar == true then
-        Wr_save.ChangeBar = false
-      else
-        Wr_save.ChangeBar = true
-      end
-      Wr_Status()
-    elseif command == "interval 1" then
-      WRep.AmountGainedInterval = 1
-      Wr_save.AmountGainedInterval = 1
-      Wr_Status()
-    elseif command == "interval 50" then
-      WRep.AmountGainedInterval = 50
-      Wr_save.AmountGainedInterval = 50
-      Wr_Status()
-    elseif command == "interval 100" then
-      WRep.AmountGainedInterval = 100
-      Wr_save.AmountGainedInterval = 100
-      Wr_Status()
-    elseif command == "interval 150" then
-      WRep.AmountGainedInterval = 150
-      Wr_save.AmountGainedInterval = 150
-      Wr_Status()
-    elseif command == "interval 200" then
-      WRep.AmountGainedInterval = 200
-      Wr_save.AmountGainedInterval = 200
-      Wr_Status()
-    elseif command == "interval 250" then
-      WRep.AmountGainedInterval = 250
-      Wr_save.AmountGainedInterval = 250
-      Wr_Status()
-    elseif command == "interval 300" then
-      WRep.AmountGainedInterval = 300
-      Wr_save.AmountGainedInterval = 300
-      Wr_Status()
-    elseif command == "interval 350" then
-      WRep.AmountGainedInterval = 350
-      Wr_save.AmountGainedInterval = 350
-      Wr_Status()
-    elseif command == "interval 400" then
-      WRep.AmountGainedInterval = 400
-      Wr_save.AmountGainedInterval = 400
-      Wr_Status()
-    elseif command == "interval 450" then
-      WRep.AmountGainedInterval = 450
-      Wr_save.AmountGainedInterval = 450
-      Wr_Status()
-    elseif command == "interval 500" then
-      WRep.AmountGainedInterval = 500
-      Wr_save.AmountGainedInterval = 500
-      Wr_Status()
-    elseif command == "color " .. TEXT("COLORRED") then
-      WRep.Color.R = 1
-      WRep.Color.G = 0
-      WRep.Color.B = 0
-      Wr_save.Color.id = 1
-      Wr_save.Color.R = 1
-      Wr_save.Color.G = 0
-      Wr_save.Color.B = 0
-      WRep.frame:AddMessage("WonderRep: " .. TEXT("COLORCHANGED"), WRep.Color.R, WRep.Color.G, WRep.Color.B)
-    elseif command == "color " .. TEXT("COLORBLUE") then
-      WRep.Color.R = 0
-      WRep.Color.G = 0
-      WRep.Color.B = 1
-      Wr_save.Color.id = 6
-      Wr_save.Color.R = 0
-      Wr_save.Color.G = 0
-      Wr_save.Color.B = 1
-      WRep.frame:AddMessage("WonderRep: " .. TEXT("COLORCHANGED"), WRep.Color.R, WRep.Color.G, WRep.Color.B)
-    elseif command == "color " .. TEXT("COLORGREEN") then
-      WRep.Color.R = 0
-      WRep.Color.G = 1
-      WRep.Color.B = 0
-      Wr_save.Color.id = 2
-      Wr_save.Color.R = 0
-      Wr_save.Color.G = 1
-      Wr_save.Color.B = 0
-      WRep.frame:AddMessage("WonderRep: " .. TEXT("COLORCHANGED"), WRep.Color.R, WRep.Color.G, WRep.Color.B)
-    elseif command == "color " .. TEXT("COLOREMERALD") then
-      WRep.Color.R = .3
-      WRep.Color.G = .8
-      WRep.Color.B = .5
-      Wr_save.Color.id = 3
-      Wr_save.Color.R = .3
-      Wr_save.Color.G = .8
-      Wr_save.Color.B = .5
-      WRep.frame:AddMessage("WonderRep: " .. TEXT("COLORCHANGED"), WRep.Color.R, WRep.Color.G, WRep.Color.B)
-    elseif command == "color " .. TEXT("COLORYELLOW") then
-      WRep.Color.R = 1
-      WRep.Color.G = 1
-      WRep.Color.B = 0
-      Wr_save.Color.id = 4
-      Wr_save.Color.R = 1
-      Wr_save.Color.G = 1
-      Wr_save.Color.B = 0
-      WRep.frame:AddMessage("WonderRep: " .. TEXT("COLORCHANGED"), WRep.Color.R, WRep.Color.G, WRep.Color.B)
-    elseif command == "color " .. TEXT("COLORORANGE") then
-      WRep.Color.R = 1
-      WRep.Color.G = .61
-      WRep.Color.B = 0
-      Wr_save.Color.id = 5
-      Wr_save.Color.R = 1
-      Wr_save.Color.G = .61
-      Wr_save.Color.B = 0
-      WRep.frame:AddMessage("WonderRep: " .. TEXT("COLORCHANGED"), WRep.Color.R, WRep.Color.G, WRep.Color.B)
-    elseif command == "color " .. TEXT("COLORPURPLE") then
-      WRep.Color.R = .4
-      WRep.Color.G = 0
-      WRep.Color.B = .6
-      Wr_save.Color.id = 7
-      Wr_save.Color.R = .4
-      Wr_save.Color.G = 0
-      Wr_save.Color.B = .6
-      WRep.frame:AddMessage("WonderRep: " .. TEXT("COLORCHANGED"), WRep.Color.R, WRep.Color.G, WRep.Color.B)
-    elseif command == "color " .. TEXT("COLORCYAN") then
-      WRep.Color.R = 0
-      WRep.Color.G = 1
-      WRep.Color.B = 1
-      Wr_save.Color.id = 8
-      Wr_save.Color.R = 0
-      Wr_save.Color.G = 1
-      Wr_save.Color.B = 1
-      WRep.frame:AddMessage("WonderRep: " .. TEXT("COLORCHANGED"), WRep.Color.R, WRep.Color.G, WRep.Color.B)
-    else
-      WonderRep_PrintHelp()
-    end
-  end
-end
-
-function WonderRep_GetNextRepLevelName(FactionName, standingId)
+function addon:GetNextRepLevelName(FactionName, standingId)
   local RepNextLevelName = ""
 
-  if isFriendRep(FactionName) and standingId <= 6 then
-    RepNextLevelName = WRep.UnitsFriends[standingId]
-  elseif isBodyguardRep(FactionName) and standingId <= 3 then
-    RepNextLevelName = WRep.UnitsBodyguards[standingId]
+  if addon:isFriendRep(FactionName) and standingId <= 6 then
+    RepNextLevelName = unitsFriends[standingId]
+  elseif addon:isBodyguardRep(FactionName) and standingId <= 3 then
+    RepNextLevelName = unitsBodyguards[standingId]
   elseif (standingId <= 9) then
-    RepNextLevelName = WRep.Units[standingId]
+    RepNextLevelName = repLevels[standingId]
   end
 
   return RepNextLevelName
 end
 
-function isFriendRep(FactionName)
-  local FriendRep = {}
-  table.insert(FriendRep, TEXT("FUNG"))
-  table.insert(FriendRep, TEXT("CHEE"))
-  table.insert(FriendRep, TEXT("ELLA"))
-  table.insert(FriendRep, TEXT("FISH"))
-  table.insert(FriendRep, TEXT("GINA"))
-  table.insert(FriendRep, TEXT("HAOHAN"))
-  table.insert(FriendRep, TEXT("JOGU"))
-  table.insert(FriendRep, TEXT("HILLPAW"))
-  table.insert(FriendRep, TEXT("SHO"))
-  table.insert(FriendRep, TEXT("TINA"))
-  table.insert(FriendRep, TEXT("NAT"))
+function addon:isFriendRep(FactionName)
+    local FriendRep = {}
+    table.insert(FriendRep, L["Farmer Fung"])
+    table.insert(FriendRep, L["Chee Chee"])
+    table.insert(FriendRep, L["Ella"])
+    table.insert(FriendRep, L["Fish Fellreed"])
+    table.insert(FriendRep, L["Gina Mudclaw"])
+    table.insert(FriendRep, L["Haohan Mudclaw"])
+    table.insert(FriendRep, L["Jogu the Drunk"])
+    table.insert(FriendRep, L["Old Hillpaw"])
+    table.insert(FriendRep, L["Sho"])
+    table.insert(FriendRep, L["Tina Mudclaw"])
+    table.insert(FriendRep, L["Nat Pagle"])
 
-  return tContains(FriendRep, FactionName)
+    return tContains(FriendRep, FactionName)
 end
 
-function isBodyguardRep(FactionName)
-  local BodyguardRep = {}
-  table.insert(BodyguardRep, TEXT("LEORAJH"))
-  table.insert(BodyguardRep, TEXT("TORMMOK"))
-  table.insert(BodyguardRep, TEXT("ISHAAL"))
-  table.insert(BodyguardRep, TEXT("VIVIANNE"))
-  table.insert(BodyguardRep, TEXT("IRONFIST"))
-  table.insert(BodyguardRep, TEXT("AEDA"))
-  table.insert(BodyguardRep, TEXT("ILLONA"))
+function addon:isBodyguardRep(FactionName)
+    local BodyguardRep = {}
+    table.insert(BodyguardRep, L["Leorajh"])
+    table.insert(BodyguardRep, L["Tormmok"])
+    table.insert(BodyguardRep, L["Talonpriest Ishaal"])
+    table.insert(BodyguardRep, L["Vivianne"])
+    table.insert(BodyguardRep, L["Delvar Ironfist"])
+    table.insert(BodyguardRep, L["Aeda Brightdawn"])
+    table.insert(BodyguardRep, L["Defender Illona"])
 
-  return tContains(BodyguardRep, FactionName)
+    return tContains(BodyguardRep, FactionName)
 end
 
+function addon:CHAT_MSG_SYSTEM(event, ...)
+    local arg1 = ...
+    if db.char.bufferedRepGain ~= "" then
+        arg1 = db.char.bufferedRepGain
+        db.char.bufferedRepGain = ""
+    end
+
+    -- Reputation with <REPNAME> increased by <AMOUNT>.
+    local HasIndexStart, HasIndexStop, FactionName, AmountGained = string.find(arg1, L["Reputation with (.*) increased by (%d+)."])
+    if HasIndexStart == nil then
+      -- Try the REPMATCHSTR2
+      HasIndexStart, HasIndexStop, FactionName, AmountGained = string.find(arg1, L["REPMATCHSTR2"])
+      if HasIndexStart == nil then
+        -- still not found, probably not the string we want
+        return
+      else
+        -- reset buffer
+        db.char.BufferedRepGain = ""
+      end
+    end
+end
+
+function addon:GetRepMatch(FactionName)
+    local factionIndex = 1
+    local lastFactionName
+    repeat
+        local name, description, standingId, bottomValue, topValue, earnedValue, atWarWith,
+            canToggleAtWar, isHeader, isCollapsed, hasRep, isWatched, isChild = GetFactionInfo(factionIndex)
+        if name == lastFactionName then break end
+        lastFactionName = name
+        if name == FactionName then
+            return factionIndex, standingId, topValue, earnedValue
+        end
+
+        factionIndex = factionIndex + 1
+    until factionIndex > GetNumFactions()
+end
+
+function addon:ChangeWatched()
+    if db.global.change_bar then
+        local watchedName = GetWatchedFactionInfo()
+        if db.char.lastRepGained ~= watchedName then
+            SetWatchedFactionIndex(db.char.lastRepGainedIndex)
+            if db.global.change_bar_announce == true then
+                print("WonderRep: " .. L["Reputation Bar changed to:"] .. " " .. db.char.lastRepGained .. ".")
+            end
+        end
+    end
+end
+
+function addon:UpdateFactions()
+    local factionIndex = 1
+    local lastFactionName = ""
+
+    -- update known factions
+    repeat
+        local name = GetFactionInfo(factionIndex)
+        if name == lastFactionName then break end
+        lastFactionName = name
+        if name then
+            if not db.char.reputation[name] then
+                db.char.reputation[name] = {
+                    gainedSession = 0,
+                    gainedDay = 0,
+                    gainedWeek = 0
+                }
+            elseif db.char.reputation[name].gainedDay == nil then
+                db.char.reputation[name].gainedDay = 0
+                db.char.reputation[name].gainedWeek = 0
+            end
+        end
+        factionIndex = factionIndex + 1
+    until factionIndex > GetNumFactions()
+end
+
+function WonderRep(msg)
+    if msg then
+        if msg == "" then
+            PrintHelp()
+        else
+        end
+    end
+end
+
+local function GetTipAnchor(frame)
+    local x,y = frame:GetCenter()
+    if not x or not y then return "TOPLEFT", "BOTTOMLEFT" end
+    local hhalf = (x > UIParent:GetWidth()*2/3) and "RIGHT" or (x < UIParent:GetWidth()/3) and "LEFT" or ""
+    local vhalf = (y > UIParent:GetHeight()/2) and "TOP" or "BOTTOM"
+    return vhalf..hhalf, frame, (vhalf == "TOP" and "BOTTOM" or "TOP")..hhalf
+end
+
+function addon:SetTooltipContents()
+    WRTip:Clear()
+
+    local line
+    line = WRTip:AddLine()
+    WRTip:SetCell(line, 1, L["Reputation Earned Summary"], nil, "CENTER", 7)
+
+    WRTip:AddSeparator();
+
+    line = WRTip:AddLine()
+    WRTip:SetCell(line, 5, L["Earned"], 3)
+
+    line = WRTip:AddLine()
+    WRTip:SetCell(line, 1, L["Faction Name"])
+    WRTip:SetCell(line, 2, L["Standing"])
+    WRTip:SetCell(line, 3, L["%"])
+    WRTip:SetCell(line, 4, L["Time"])
+    WRTip:SetCell(line, 5, L["Session"])
+    WRTip:SetCell(line, 6, L["Day"])
+    WRTip:SetCell(line, 7, L["Week"])
+
+    WRTip:AddSeparator();
+
+    local factionIndex = 1
+    local lastFactionName = ""
+    repeat
+        local name, description, standingId, bottomValue, topValue, earnedValue, atWarWith,
+            canToggleAtWar, isHeader, isCollapsed, hasRep, isWatched, isChild = GetFactionInfo(factionIndex)
+        local levelTop = topValue - bottomValue
+        local levelEarned = earnedValue - bottomValue
+        local percent = (levelEarned / levelTop) * 100
+        local roundedPercent = percent + 0.5 - (percent + 0.5) % 1
+        local repLeftToLevel = topValue - earnedValue
+        local estimatedTimeTolevel = repLeftToLevel / (db.char.reputation[name].gainedSession / db.char.sessionTime)
+        if name == lastFactionName then break end
+        lastFactionName = name
+        if not isHeader and db.char.reputation[name] and db.char.reputation[name].gainedSession > 0 then
+            line = WRTip:AddLine()
+            WRTip:SetCell(line, 1, name.."  ")
+            WRTip:SetCell(line, 2, " "..repLevels[standingId].." ")
+            WRTip:SetCell(line, 3, " "..roundedPercent.."% ")
+            WRTip:SetCell(line, 4, " "..addon:TimeTextMed(estimatedTimeTolevel).." ")
+            WRTip:SetCell(line, 5, " "..db.char.reputation[name].gainedSession.." ")
+            WRTip:SetCell(line, 6, " "..db.char.reputation[name].gainedDay.." ")
+            WRTip:SetCell(line, 7, " "..db.char.reputation[name].gainedWeek.." ")
+        end
+
+        factionIndex = factionIndex + 1
+    until factionIndex > GetNumFactions()
+
+    --GameTooltip:AddLine(" ")
+    --GameTooltip:AddLine("     "..L["Faction"].."     |r|r|rgoodbye|rhello")
+    --GameTooltip:AddLine(" ")
+    --WRTip:AddLine(L["|cffeda55fShift-Click|r to show options."], 0.2, 1, 0.2, 1)
+
+    WRTip:Show()
+end
+
+function addon:TimeTextShort(s)
+    if math.huge == s then
+        return L["Infinite"]
+    end
+
+    local days = floor(s/24/60/60); s = mod(s, 24*60*60)
+    local hours = floor(s/60/60); s = mod(s, 60*60)
+    local minutes = floor(s/60); s = mod(s, 60)
+    local seconds = s
+
+    local timeText = ""
+    if days ~= 0 then
+        timeText = timeText..format(" %d:%d:%d:%d ", days, hours, minutes, seconds)
+    elseif hours ~= 0 then
+        timeText = timeText..format(" %d:%d:%d ", hours, minutes, seconds)
+    elseif minutes ~= 0 then
+        timeText = timeText..format(" %d:%d", minutes, seconds)
+    elseif seconds ~= 0 then
+        timeText = timeText..format("%d ", seconds)
+    end
+
+    return timeText
+end
+
+function addon:TimeTextMed(s)
+
+    if math.huge == s then
+        return L["Infinite"]
+    end
+
+    local days = floor(s/24/60/60); s = mod(s, 24*60*60)
+    local hours = floor(s/60/60); s = mod(s, 60*60)
+    local minutes = floor(s/60); s = mod(s, 60)
+    local seconds = s
+
+    local timeText = ""
+    if days ~= 0 then
+        timeText = timeText..format(" %dd %dh %dm %ds ", days, hours, minutes, seconds)
+    elseif hours ~= 0 then
+        timeText = timeText..format(" %dh %dm %ds ", hours, minutes, seconds)
+    elseif minutes ~= 0 then
+        timeText = timeText..format(" %dm %ds ", minutes, seconds)
+    elseif seconds ~= 0 then
+        timeText = timeText..format("%ds ", seconds)
+    end
+
+    return timeText
+end
+
+function addon:DataObjEnter(LDBFrame)
+    if WRTip ~= nil then
+        if libQTip:IsAcquired("WonderRepTip") then WRTip:Clear() end
+        WRTip:Hide()
+        libQTip:Release(WRTip)
+        WRTip = nil
+    end
+
+    WRTip = libQTip:Acquire("WonderRepTip", 7, "LEFT", "CENTER", "CENTER", "CENTER", "CENTER", "CENTER", "CENTER")
+    WRTip:SmartAnchorTo(LDBFrame)
+    --WRTip:SetOwner(LDBFrame, "ANCHOR_NONE")
+    --WRTip:SetPoint(GetTipAnchor(LDBFrame))
+    addon:SetTooltipContents()
+end
+
+function addon:SessionTimer()
+    db.char.sessionTime = db.char.sessionTime + 1
+    if ((db.char.sessionTime % 5) == 0) then
+        self:SetBrokerText()
+    end
+end
+
+function addon:CheckStatsResets()
+    local now = date('*t')
+
+    ---------------------------------------------------------------------------
+    -- 1/ Compute reset dates for stats
+    ---------------------------------------------------------------------------
+    local startOfDay, startOfMonth, startOfYear, startOfWeek
+    local reset = {
+        hour = 0,   -- Toutes les limites sont fixées à 00:00:00
+        min  = 0,   -- TODO: Gérer l'heure d'été/hiver ? Si oui, comment ?
+        sec  = 0
+    }
+
+    -- Start of today
+    reset.day   = now.day
+    reset.month = now.month
+    reset.year  = now.year
+    startOfDay = time(reset)
+
+    reset.day    = 1
+    startOfMonth = time(reset)
+
+    reset.month = 1
+    startOfYear = time(reset)
+
+    --local numDaysBack = (now.wday - db.global.ldb.start_of_week + 7) % 7
+    -- if next reset timer is same day as start of week, then start of this week was 7 days ago
+    reset = date('*t',time()+GetQuestResetTime())
+    --if reset.wday == db.global.ldb.start_of_week then
+--      numDaysBack = 7
+    --end
+    local numDaysBack = (reset.wday - 3 - 1) % 7 + 1
+    startOfWeek = time(reset) - numDaysBack*86400
+
+    ---------------------------------------------------------------------------
+    -- 2/ Reinit old stats?
+    ---------------------------------------------------------------------------
+    -- for key,char in pairs(db.sv.char) do
+    if db.char.lastSaved ~= nill then
+        local lastSaved = db.char.lastSaved or time()
+
+        if lastSaved < startOfDay then
+            for k in pairs(db.char.reputation) do
+                db.char.reputation[k].gainedDay = 0
+            end
+        end
+        if lastSaved < startOfWeek  then
+            for k in pairs(db.char.reputation) do
+                db.char.reputation[k].lastweek = db.char.reputation[k].gainedWeek
+                db.char.reputation[k].gainedWeek = 0
+            end
+        end
+        db.char.lastSaved = time()
+    end
+
+    ---------------------------------------------------------------------------
+    -- 4/ Relance le chronomètre jusqu'à demain minuit pour la prochaine vérification
+    ---------------------------------------------------------------------------
+    now.day  = now.day + 1  -- Demain
+    now.hour = 0            -- à 0 heure
+    now.min  = 0            -- 0 minute
+    now.sec  = 1            -- et 1 seconde (marge de sécurité)
+
+    -- schedule the next update at next daily reset or next day, whichever is earlier
+    local next_check = min(difftime(time(now), time()), GetQuestResetTime()+1)
+    self:ScheduleTimer('CheckStatsResets', next_check)
+end
+
+function addon:SetBrokerText()
+    local dotext
+    self.dataobj.icon = azeriteItemIcon
+    local name, standingID, barMin, barMax, barValue = GetWatchedFactionInfo()
+    if name == nil then
+        dotext = L["No Watched Faction"]
+    elseif standingID == 8 then
+        dotext = name..": "..L["maxed, pick another faction."]
+    else
+        local trueMax = barMax - barMin
+        local trueValue = barValue - barMin
+
+        if db.global.display_name == true and standingID ~= nil then
+            dotext = name..": "
+        else
+            dotext = ""
+        end
+
+        if db.global.display_level == true then
+            dotext = dotext..repLevels[standingID]..": "
+        end
+
+        if db.global.display_percent == true then
+            local percent = (trueValue / trueMax) * 100
+            local roundedPercent = percent + 0.5 - (percent + 0.5) % 1
+            dotext = dotext..roundedPercent.."%: "
+        end
+
+        if db.global.display_time == true then
+            local repLeftToLevel = trueMax - trueValue
+            local estimatedTimeTolevel = repLeftToLevel / (db.char.reputation[name].gainedSession / db.char.sessionTime)
+            dotext = dotext..addon:TimeTextMed(estimatedTimeTolevel)
+        end
+    end
+    self.dataobj.text = ' '..dotext..' '
+end
+
+function addon:ConfigFrame()
+    local menuPad = 16
+    local linePad = 30
+
+    local cfgFrame = CreateFrame("Frame", "WonderRepConfig",InterfaceOptionsFramePanelContainer)
+    cfgFrame.name = "WonderRep"
+    InterfaceOptions_AddCategory(cfgFrame)
+
+    local title = cfgFrame:CreateFontString(nil,"ARTWORK","GameFontNormalLarge")
+    title:SetPoint("TOPLEFT",menuPad,-menuPad)
+    title:SetText("WonderRep v"..GetAddOnMetadata("WonderRep","Version"))
+
+    -- Function to create check buttons
+    function createCheckbutton(parent, x_loc, y_loc, varname, displayname)
+        local checkbutton = CreateFrame("CheckButton", varname, parent, "ChatConfigCheckButtonTemplate");
+        checkbutton:SetPoint("TOPLEFT", parent, "TOPLEFT", x_loc, y_loc);
+        _G[varname..'Text']:SetText(displayname);
+        checkbutton:SetHitRectInsets(0,0,0,0);
+        return checkbutton;
+    end
+
+    local crbcb = createCheckbutton(cfgFrame, menuPad, -30-linePad, "wrcrb"," "..L["Enable change reputation watch bar on reputation change."]);
+    crbcb:SetSize(30,30);
+    crbcb:SetScript("PostClick", function()
+        db.global.change_bar = wrcrb:GetChecked()
+        if wrcrb:GetChecked() then
+            --L_UIDropDownMenu_EnableDropDown(ORaidDropDownMenu)
+        else
+            --L_UIDropDownMenu_DisableDropDown(ORaidDropDownMenu)
+        end
+    end);
+    if db.global.change_bar then crbcb:SetChecked(true) end
+
+    local crbacb = createCheckbutton(cfgFrame, menuPad, -30-(linePad*2), "wrcrba"," "..L["Enable announcement of reputation bar changes."]);
+    crbacb:SetSize(30,30);
+    crbacb:SetScript("PostClick", function()
+        db.global.change_bar_announce = wrcrba:GetChecked()
+        if wrcrba:GetChecked() then
+            --L_UIDropDownMenu_EnableDropDown(ORaidDropDownMenu)
+        else
+            --L_UIDropDownMenu_DisableDropDown(ORaidDropDownMenu)
+        end
+    end);
+    if db.global.change_bar_announce then crbacb:SetChecked(true) end
+
+    local atlcb = createCheckbutton(cfgFrame, menuPad, -30-(linePad*3), "wratl"," "..L["Enable announcement of time left to next level."]);
+    atlcb:SetSize(30,30);
+    atlcb:SetScript("PostClick", function()
+        db.global.announce_time_left = wratl:GetChecked()
+        if wratl:GetChecked() then
+            --L_UIDropDownMenu_EnableDropDown(ORaidDropDownMenu)
+        else
+            --L_UIDropDownMenu_DisableDropDown(ORaidDropDownMenu)
+        end
+    end);
+    if db.global.announce_time_left then atlcb:SetChecked(true) end
+end
+
+-- Startup Events --
+function addon:OnInitialize()
+    print("wonderrep")
+    self.dataobj = LibStub("LibDataBroker-1.1"):NewDataObject(addonName, {
+        type = "data source",
+        text = " ",
+        icon = azeriteItemIcon,
+        OnClick = function(f,b) addon:DataObjClick(b) end,
+        OnLeave = function() 
+            libQTip:Release(WRTip)
+            WRTip = nil 
+        end,
+        OnEnter = function(f) addon:DataObjEnter(f) end,
+    })
+
+    SLASH_WONDERREP21 = "/wonderrep"
+    SLASH_WONDERREP22 = "/wr"
+    SlashCmdList["WONDERREP"] = function(msg)
+        WonderRep(msg)
+    end
+
+    self.sessionTimer = self:ScheduleRepeatingTimer("SessionTimer", 1)
+
+    --LibStub('AceConfig-3.0'):RegisterOptionsTable(addonName, options_panel)
+    --local optionsFrame = LibStub('AceConfigDialog-3.0'):AddToBlizOptions(addonName)
+
+    if IsLoggedIn() then self:PLAYER_ENTERING_WORLD() else self:RegisterEvent("PLAYER_ENTERING_WORLD") end
+end

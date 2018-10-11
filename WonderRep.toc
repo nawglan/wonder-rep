@@ -1,14 +1,29 @@
 ## Interface: 80000
-## Title: WonderRep v1.6.39
+## Title: WonderRep
+## Version: 2.0.1
 ## Notes: Adds all sorts of functionality for reputation changes!
-## Dependencies:
-## SavedVariablesPerCharacter: Wr_save,Wr_version,Wrl
-## X-Curse-Packaged-Version: v1.6.39
+## OptionalDeps: Ace3
+
+## SavedVariables: WonderRep_DB
+## X-Curse-Packaged-Version: v2.0.1
 ## X-Curse-Project-Name: WonderRep (Reputation)
 ## X-Curse-Project-ID: wonder-rep-reputation
 ## X-Curse-Repository-ID: wow/wonder-rep-reputation/mainline
-Localization\Localization.xml
-WonderRepOptions.lua
-WonderRepOptions.xml
+
+libs\LibStub\LibStub.lua
+libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
+libs\LibRealmInfo\LibRealmInfo.lua
+Libs\LibQTip-1.0\LibQTip-1.0.lua
+
+libs\CallbackHandler-1.0\CallbackHandler-1.0.xml
+
+libs\AceAddon-3.0\AceAddon-3.0.xml
+libs\AceDB-3.0\AceDB-3.0.xml
+libs\AceConfig-3.0\AceConfig-3.0.xml
+libs\AceEvent-3.0\AceEvent-3.0.xml
+libs\AceLocale-3.0\AceLocale-3.0.xml
+libs\AceTimer-3.0\AceTimer-3.0.xml
+
+Locales\enUS.lua
+
 WonderRep.lua
-WonderRep.xml
