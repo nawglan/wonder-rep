@@ -568,7 +568,7 @@ function addon:SetBrokerText()
             dotext = dotext..roundedPercent.."%: "
         end
 
-        if db.global.display_time == true then
+        if db.global.display_time == true and db.char.reputation[name] ~= nil then
             local repLeftToLevel = trueMax - trueValue
             local estimatedTimeTolevel = repLeftToLevel / (db.char.reputation[name].gainedSession / db.char.sessionTime)
             dotext = dotext..addon:TimeTextMed(estimatedTimeTolevel)
