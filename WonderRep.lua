@@ -451,6 +451,10 @@ function addon:TimeTextMed(s)
     return timeText
 end
 
+-- Stub function
+function addon:DataObjClick(button)
+end
+
 function addon:DataObjEnter(LDBFrame)
     if WRTip ~= nil then
         if libQTip:IsAcquired("WonderRepTip") then WRTip:Clear() end
