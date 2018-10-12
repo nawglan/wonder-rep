@@ -376,10 +376,11 @@ function addon:SetTooltipContents()
         local percent = (levelEarned / levelTop) * 100
         local roundedPercent = percent + 0.5 - (percent + 0.5) % 1
         local repLeftToLevel = topValue - earnedValue
-        local estimatedTimeTolevel = repLeftToLevel / (db.char.reputation[name].gainedSession / db.char.sessionTime)
         if name == lastFactionName then break end
         lastFactionName = name
         if not isHeader and db.char.reputation[name] and db.char.reputation[name].gainedSession > 0 then
+            local estimatedTimeTolevel = repLeftToLevel / (db.char.reputation[name].gainedSession / db.char.sessionTime)
+
             line = WRTip:AddLine()
             WRTip:SetCell(line, 1, name.."  ")
             WRTip:SetCell(line, 2, " "..repLevels[standingId].." ")
