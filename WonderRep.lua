@@ -1,4 +1,3 @@
-print("hello world")
 local addonName, addonSpace = ...
 local addon   = LibStub('AceAddon-3.0'):NewAddon(addonSpace, addonName, 'AceEvent-3.0', 'AceTimer-3.0')
 
@@ -103,14 +102,11 @@ function addon:PLAYER_ENTERING_WORLD(event, ...)
     addon:ConfigFrame()
     self:RegisterEvent("CHAT_MSG_COMBAT_FACTION_CHANGE") -- changes in faction come in on this channel
     self:RegisterEvent("CHAT_MSG_SYSTEM") -- New factions come in on this channel
-    --self:RegisterEvent("AZERITE_ITEM_EXPERIENCE_CHANGED")
-    --self:RegisterEvent("AZERITE_ITEM_POWER_LEVEL_CHANGED")
 
     self:UnregisterEvent("PLAYER_ENTERING_WORLD")
     self.PLAYER_ENTERING_WORLD = nil
     self:CheckStatsResets()
     self:UpdateFactions()
-    --self:SetAzeriteVars()
     self:SetBrokerText()
 
 end
@@ -121,8 +117,8 @@ local function PrintHelp()
     print(L["WonderRep commands help:"])
     print(L["Use /wonderrep <command> or /wr <command> to perform the following commands:"])
     print("help -- " .. L["You are viewing it!"])
-    print("status -- " .. L["Shows your current settings."])
-    print("announce -- " .. L["Toggles the displaying of reputation points needed to next level message."])
+    --print("status -- " .. L["Shows your current settings."])
+    --print("announce -- " .. L["Toggles the displaying of reputation points needed to next level message."])
     --print("timeleft -- " .. L("HELPTIMELEFT"))
     --print("autobar -- " .. L("HELPAUTOBAR"))
     --print("barchange -- " .. L("HELPBARCHANGE"))
@@ -155,7 +151,7 @@ function addon:CHAT_MSG_COMBAT_FACTION_CHANGE(event, ...)
         return
     end
 
-    local RepIndex, standingId, topValue, earnedValue = addon:GetRepMatch(FactionName)
+    local RepIndex, standingId, topValue, earnedValue, factionID = addon:GetRepMatch(FactionName)
 
     if RepIndex ~= nil then
         db.char.lastSaved = time()
@@ -192,6 +188,17 @@ function addon:CHAT_MSG_COMBAT_FACTION_CHANGE(event, ...)
         end
 
         local RepNextLevelName = addon:GetNextRepLevelName(FactionName, nextStandingId)
+
+        local paraValue, paraThreshold, paraQuestId, paraRewardPending = C_Reputation.GetFactionParagonInfo(factionID)
+
+        if C_Reputation.IsFactionParagon(factionID) then
+            while (paraValue > paraThreshold) do
+                paraValue = paraValue - paraThreshold
+            end
+            repLeftToLevel = paraThreshold - paraValue
+            RepNextLevelName = L['Paragon']
+        end
+
         local KillsToNext = ceil(.5 + (repLeftToLevel / factionIncreasedBy))
         local estimatedTimeTolevel = repLeftToLevel / (db.char.reputation[FactionName].gainedSession / db.char.sessionTime)
 
@@ -278,11 +285,11 @@ function addon:GetRepMatch(FactionName)
     local lastFactionName
     repeat
         local name, description, standingId, bottomValue, topValue, earnedValue, atWarWith,
-            canToggleAtWar, isHeader, isCollapsed, hasRep, isWatched, isChild = GetFactionInfo(factionIndex)
+            canToggleAtWar, isHeader, isCollapsed, hasRep, isWatched, isChild, factionID = GetFactionInfo(factionIndex)
         if name == lastFactionName then break end
         lastFactionName = name
         if name == FactionName then
-            return factionIndex, standingId, topValue, earnedValue
+            return factionIndex, standingId, topValue, earnedValue, factionID
         end
 
         factionIndex = factionIndex + 1
@@ -330,6 +337,7 @@ function WonderRep(msg)
     if msg then
         if msg == "" then
             PrintHelp()
+            self:ToggleOptionsPanel()
         else
         end
     end
@@ -370,12 +378,33 @@ function addon:SetTooltipContents()
     local lastFactionName = ""
     repeat
         local name, description, standingId, bottomValue, topValue, earnedValue, atWarWith,
-            canToggleAtWar, isHeader, isCollapsed, hasRep, isWatched, isChild = GetFactionInfo(factionIndex)
-        local levelTop = topValue - bottomValue
-        local levelEarned = earnedValue - bottomValue
-        local percent = (levelEarned / levelTop) * 100
-        local roundedPercent = percent + 0.5 - (percent + 0.5) % 1
-        local repLeftToLevel = topValue - earnedValue
+            canToggleAtWar, isHeader, isCollapsed, hasRep, isWatched, isChild, factionID = GetFactionInfo(factionIndex)
+        
+        if factionID == nil then
+            break
+        end
+
+        local paraValue, paraThreshold, paraQuestId, paraRewardPending = C_Reputation.GetFactionParagonInfo(factionID)
+        
+        local levelTop, levelEarned, percent, roundedPercent, repLeftToLevel
+
+
+        if C_Reputation.IsFactionParagon(factionID) then
+            while (paraValue > paraThreshold) do
+                paraValue = paraValue - paraThreshold
+            end
+            levelTop = paraThreshold
+            levelEarned = paraValue
+            repLeftToLevel = paraThreshold - paraValue
+        else 
+            levelTop = topValue - bottomValue
+            levelEarned = earnedValue - bottomValue
+            repLeftToLevel = topValue - earnedValue
+        end
+
+        percent = (levelEarned / levelTop) * 100
+        roundedPercent = percent + 0.5 - (percent + 0.5) % 1
+
         if name == lastFactionName then break end
         lastFactionName = name
         if not isHeader and db.char.reputation[name] and db.char.reputation[name].gainedSession > 0 then
@@ -394,10 +423,6 @@ function addon:SetTooltipContents()
         factionIndex = factionIndex + 1
     until factionIndex > GetNumFactions()
 
-    --GameTooltip:AddLine(" ")
-    --GameTooltip:AddLine("     "..L["Faction"].."     |r|r|rgoodbye|rhello")
-    --GameTooltip:AddLine(" ")
-    --WRTip:AddLine(L["|cffeda55fShift-Click|r to show options."], 0.2, 1, 0.2, 1)
 
     WRTip:Show()
 end
@@ -451,8 +476,9 @@ function addon:TimeTextMed(s)
     return timeText
 end
 
--- Stub function
+-- Open options on click, for now
 function addon:DataObjClick(button)
+    self:ToggleOptionsPanel()
 end
 
 function addon:DataObjEnter(LDBFrame)
@@ -465,8 +491,6 @@ function addon:DataObjEnter(LDBFrame)
 
     WRTip = libQTip:Acquire("WonderRepTip", 7, "LEFT", "CENTER", "CENTER", "CENTER", "CENTER", "CENTER", "CENTER")
     WRTip:SmartAnchorTo(LDBFrame)
-    --WRTip:SetOwner(LDBFrame, "ANCHOR_NONE")
-    --WRTip:SetPoint(GetTipAnchor(LDBFrame))
     addon:SetTooltipContents()
 end
 
@@ -480,13 +504,11 @@ end
 function addon:CheckStatsResets()
     local now = date('*t')
 
-    ---------------------------------------------------------------------------
-    -- 1/ Compute reset dates for stats
-    ---------------------------------------------------------------------------
+
     local startOfDay, startOfMonth, startOfYear, startOfWeek
     local reset = {
-        hour = 0,   -- Toutes les limites sont fixées à 00:00:00
-        min  = 0,   -- TODO: Gérer l'heure d'été/hiver ? Si oui, comment ?
+        hour = 0,   
+        min  = 0,   
         sec  = 0
     }
 
@@ -502,18 +524,12 @@ function addon:CheckStatsResets()
     reset.month = 1
     startOfYear = time(reset)
 
-    --local numDaysBack = (now.wday - db.global.ldb.start_of_week + 7) % 7
-    -- if next reset timer is same day as start of week, then start of this week was 7 days ago
     reset = date('*t',time()+GetQuestResetTime())
-    --if reset.wday == db.global.ldb.start_of_week then
---      numDaysBack = 7
-    --end
+
     local numDaysBack = (reset.wday - 3 - 1) % 7 + 1
     startOfWeek = time(reset) - numDaysBack*86400
 
-    ---------------------------------------------------------------------------
-    -- 2/ Reinit old stats?
-    ---------------------------------------------------------------------------
+
     -- for key,char in pairs(db.sv.char) do
     if db.char.lastSaved ~= nill then
         local lastSaved = db.char.lastSaved or time()
@@ -532,13 +548,11 @@ function addon:CheckStatsResets()
         db.char.lastSaved = time()
     end
 
-    ---------------------------------------------------------------------------
-    -- 4/ Relance le chronomètre jusqu'à demain minuit pour la prochaine vérification
-    ---------------------------------------------------------------------------
-    now.day  = now.day + 1  -- Demain
-    now.hour = 0            -- à 0 heure
-    now.min  = 0            -- 0 minute
-    now.sec  = 1            -- et 1 seconde (marge de sécurité)
+
+    now.day  = now.day + 1  
+    now.hour = 0           
+    now.min  = 0   
+    now.sec  = 1    
 
     -- schedule the next update at next daily reset or next day, whichever is earlier
     local next_check = min(difftime(time(now), time()), GetQuestResetTime()+1)
@@ -548,10 +562,40 @@ end
 function addon:SetBrokerText()
     local dotext
     self.dataobj.icon = azeriteItemIcon
-    local name, standingID, barMin, barMax, barValue = GetWatchedFactionInfo()
+    
+    local name, standingID, barMin, barMax, barValue, factionID = GetWatchedFactionInfo()
+    local RepIndex, standingId, topValue, earnedValue = addon:GetRepMatch(name)
+    local paraValue, paraThreshold, paraQuestId, paraRewardPending = C_Reputation.GetFactionParagonInfo(factionID)
+
     if name == nil then
         dotext = L["No Watched Faction"]
-    elseif standingID == 8 then
+    elseif C_Reputation.IsFactionParagon(factionID) then
+        while (paraValue > paraThreshold) do
+            paraValue = paraValue - paraThreshold
+        end
+
+        if db.global.display_name == true and standingID ~= nil then
+            dotext = name..": "
+        else
+            dotext = ""
+        end
+
+        if db.global.display_level == true then
+            dotext = dotext.."Paragon: "
+        end
+
+        if db.global.display_percent == true then
+            local percent = (paraValue / paraThreshold) * 100
+            local roundedPercent = percent + 0.5 - (percent + 0.5) % 1
+            dotext = dotext..roundedPercent.."%: "
+        end
+
+        if db.global.display_time == true and db.char.reputation[name] ~= nil then
+            local repLeftToLevel = paraThreshold - paraValue
+            local estimatedTimeTolevel = repLeftToLevel / (db.char.reputation[name].gainedSession / db.char.sessionTime)
+            dotext = dotext..addon:TimeTextMed(estimatedTimeTolevel)
+        end
+    elseif (standingID == 8) then
         dotext = name..": "..L["maxed, pick another faction."]
     else
         local trueMax = barMax - barMin
@@ -642,7 +686,6 @@ end
 
 -- Startup Events --
 function addon:OnInitialize()
-    print("wonderrep")
     self.dataobj = LibStub("LibDataBroker-1.1"):NewDataObject(addonName, {
         type = "data source",
         text = " ",
@@ -663,8 +706,6 @@ function addon:OnInitialize()
 
     self.sessionTimer = self:ScheduleRepeatingTimer("SessionTimer", 1)
 
-    --LibStub('AceConfig-3.0'):RegisterOptionsTable(addonName, options_panel)
-    --local optionsFrame = LibStub('AceConfigDialog-3.0'):AddToBlizOptions(addonName)
 
     if IsLoggedIn() then self:PLAYER_ENTERING_WORLD() else self:RegisterEvent("PLAYER_ENTERING_WORLD") end
 end

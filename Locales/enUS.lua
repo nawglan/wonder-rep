@@ -21,6 +21,7 @@ L["HONORED"] = "Honored"
 L["REVERED"] = "Revered"
 L["EXALTED"] = "Exalted"
 L["MAXEXALTED"] = "Maxed"
+L["Paragon"] = true
 L["Guild"] = true
 L["Reputation with (.*) increased by (%d+)."] = true
 L["REPMATCHSTR2"] = true
