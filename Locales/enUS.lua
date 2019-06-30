@@ -1,6 +1,6 @@
 local debug = false
---@debug@ debug = true
---@end-debug@
+--[===[@debug@ debug = true
+--@end-debug@]===]
 local L = LibStub("AceLocale-3.0"):NewLocale("WonderRep", "enUS", true, debug)
 if not L then return end
 L["Reputation Earned Summary"] = true
@@ -67,3 +67,5 @@ L["Bodyguard"] = true          	--     0 - 10000
 L["Trusted Bodyguard"] = true  	-- 10000 - 20000
 L["Personal Wingman"] = true    -- 20000 - 30000
 L["maxed, pick another faction."] = true
+L["OPENOPTIONS"] = "Opens the options panel."
+L["Change announce messages to 'WonderRep' chat window."] = true

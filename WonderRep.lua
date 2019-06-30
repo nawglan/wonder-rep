@@ -4,6 +4,7 @@ local addon   = LibStub('AceAddon-3.0'):NewAddon(addonSpace, addonName, 'AceEven
 WR = addon
 
 local timerId = nil
+local configFrame = nil
 
 local L = LibStub('AceLocale-3.0'):GetLocale(addonName)
 
@@ -31,6 +32,7 @@ local sv_defaults = {
         change_bar = false,
         change_bar_announce = true,
         announce_time_left = true,
+        announce_chat_frame = false,
         announce_left = true
     },
     char = {
@@ -112,11 +114,12 @@ function addon:PLAYER_ENTERING_WORLD(event, ...)
 end
 
 local function PrintHelp()
-    print(" ")
-    print("-----------------------------------")
-    print(L["WonderRep commands help:"])
-    print(L["Use /wonderrep <command> or /wr <command> to perform the following commands:"])
-    print("help -- " .. L["You are viewing it!"])
+    DEFAULT_CHAT_FRAME:AddMessage(" ")
+    DEFAULT_CHAT_FRAME:AddMessage("-----------------------------------")
+    DEFAULT_CHAT_FRAME:AddMessage(L["WonderRep commands help:"])
+    DEFAULT_CHAT_FRAME:AddMessage(L["Use /wonderrep <command> or /wr <command> to perform the following commands:"])
+    DEFAULT_CHAT_FRAME:AddMessage("help -- " .. L["You are viewing it!"])
+    DEFAULT_CHAT_FRAME:AddMessage("options -- " ..L["OPENOPTIONS"])
     --print("status -- " .. L["Shows your current settings."])
     --print("announce -- " .. L["Toggles the displaying of reputation points needed to next level message."])
     --print("timeleft -- " .. L("HELPTIMELEFT"))
@@ -124,8 +127,8 @@ local function PrintHelp()
     --print("barchange -- " .. L("HELPBARCHANGE"))
     --print("interval -- " .. L("HELPINTERVAL"))
     --print("color -- " .. L("HELPCOLOR"))
-    print("-----------------------------------")
-    print(" ")
+    DEFAULT_CHAT_FRAME:AddMessage("-----------------------------------")
+    DEFAULT_CHAT_FRAME:AddMessage(" ")
 end
 
 function addon:CHAT_MSG_COMBAT_FACTION_CHANGE(event, ...)
@@ -203,7 +206,11 @@ function addon:CHAT_MSG_COMBAT_FACTION_CHANGE(event, ...)
         local estimatedTimeTolevel = repLeftToLevel / (db.char.reputation[FactionName].gainedSession / db.char.sessionTime)
 
         if db.global.announce_left == true and db.global.announce_time_left == true then
-            print(string.format("WonderRep: " .. L['REPSTRFULL'], repLeftToLevel, FactionName, RepNextLevelName, KillsToNext, db.char.reputation[FactionName].gainedDay, addon:TimeTextMed(estimatedTimeTolevel), RepNextLevelName))
+            if db.global.announce_chat_frame == true then
+                self:GetChatFrame(string.format("WonderRep: " .. L['REPSTRFULL'], repLeftToLevel, FactionName, RepNextLevelName, KillsToNext, db.char.reputation[FactionName].gainedDay, addon:TimeTextMed(estimatedTimeTolevel), RepNextLevelName))
+            else
+                print(string.format("WonderRep: " .. L['REPSTRFULL'], repLeftToLevel, FactionName, RepNextLevelName, KillsToNext, db.char.reputation[FactionName].gainedDay, addon:TimeTextMed(estimatedTimeTolevel), RepNextLevelName))
+            end
         end        
 
         db.char.lastRepGained = FactionName
@@ -333,12 +340,41 @@ function addon:UpdateFactions()
     until factionIndex > GetNumFactions()
 end
 
+function addon:GetChatFrame(msg)
+    i = 0
+    repeat
+        i = i+1
+        local name, fontSize, r, g, b, alpha, shown, locked, docked, uninteractable = GetChatWindowInfo(i)
+        if name == nil then
+            break
+        end
+        if name == "WonderRep" then
+            _G["ChatFrame"..i]:AddMessage(msg)
+        end
+    until i > 100
+end
+
 function WonderRep(msg)
     if msg then
         if msg == "" then
             PrintHelp()
-            self:ToggleOptionsPanel()
-        else
+            InterfaceOptionsFrame_OpenToCategory(configFrame)
+        elseif msg == "ct" then
+            i = 0
+            repeat
+                i = i+1
+                local name, fontSize, r, g, b, alpha, shown, locked, docked, uninteractable = GetChatWindowInfo(i)
+                if name == nil then
+                    break
+                end
+                if name == "WonderRep" then
+                    _G["ChatFrame"..i]:AddMessage("test")
+                end
+            until i > 100
+        elseif msg == "options" then
+            InterfaceOptionsFrame_OpenToCategory(configFrame)
+        elseif msg == "help" then
+            PrintHelp()
         end
     end
 end
@@ -478,7 +514,7 @@ end
 
 -- Open options on click, for now
 function addon:DataObjClick(button)
-    self:ToggleOptionsPanel()
+    InterfaceOptionsFrame_OpenToCategory(configFrame)
 end
 
 function addon:DataObjEnter(LDBFrame)
@@ -631,6 +667,7 @@ function addon:ConfigFrame()
     local linePad = 30
 
     local cfgFrame = CreateFrame("Frame", "WonderRepConfig",InterfaceOptionsFramePanelContainer)
+    configFrame = cfgFrame
     cfgFrame.name = "WonderRep"
     InterfaceOptions_AddCategory(cfgFrame)
 
@@ -682,6 +719,18 @@ function addon:ConfigFrame()
         end
     end);
     if db.global.announce_time_left then atlcb:SetChecked(true) end
+
+    local atacf = createCheckbutton(cfgFrame, menuPad, -30-(linePad*4), "wracf"," "..L["Change announce messages to 'WonderRep' chat window."]);
+    atacf:SetSize(30,30);
+    atacf:SetScript("PostClick", function()
+        db.global.announce_chat_frame = wracf:GetChecked()
+        if wracf:GetChecked() then
+            --L_UIDropDownMenu_EnableDropDown(ORaidDropDownMenu)
+        else
+            --L_UIDropDownMenu_DisableDropDown(ORaidDropDownMenu)
+        end
+    end);
+    if db.global.announce_chat_frame then atacf:SetChecked(true) end
 end
 
 -- Startup Events --
@@ -698,8 +747,8 @@ function addon:OnInitialize()
         OnEnter = function(f) addon:DataObjEnter(f) end,
     })
 
-    SLASH_WONDERREP21 = "/wonderrep"
-    SLASH_WONDERREP22 = "/wr"
+    SLASH_WONDERREP1 = "/wonderrep"
+    SLASH_WONDERREP2 = "/wr"
     SlashCmdList["WONDERREP"] = function(msg)
         WonderRep(msg)
     end

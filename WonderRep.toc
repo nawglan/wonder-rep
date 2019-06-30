@@ -1,6 +1,6 @@
-## Interface: 80100
+## Interface: 80200
 ## Title: WonderRep
-## Version: 2.1.0
+## Version: 2.1.1
 ## Notes: Adds all sorts of functionality for reputation changes!
 ## OptionalDeps: Ace3
 
