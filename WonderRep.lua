@@ -91,15 +91,13 @@ end
 function addon:PLAYER_ENTERING_WORLD(event, ...)
     local isInitialLogin, isReloadingUi = ...
 
-    db = LibStub("AceDB-3.0"):New("WonderRep_DB", sv_defaults, true)
-
     if isInitialLogin then
-        for k in pairs(db.char.reputation) do
-            db.char.reputation[k].gainedSession = 0
+        for k in pairs(self.db.char.reputation) do
+            self.db.char.reputation[k].gainedSession = 0
         end
-        db.char.session = 0
-        db.char.sessionTime = 0
-        db.char.lastRepGained = nil
+        self.db.char.session = 0
+        self.db.char.sessionTime = 0
+        self.db.char.lastRepGained = nil
     end
     addon:ConfigFrame()
     self:RegisterEvent("CHAT_MSG_COMBAT_FACTION_CHANGE") -- changes in faction come in on this channel
@@ -144,7 +142,7 @@ function addon:CHAT_MSG_COMBAT_FACTION_CHANGE(event, ...)
             return
         else
             -- reset buffer
-            db.char.BufferedRepGain = ""
+            self.db.char.BufferedRepGain = ""
         end
     end
 
@@ -157,11 +155,11 @@ function addon:CHAT_MSG_COMBAT_FACTION_CHANGE(event, ...)
     local RepIndex, standingId, topValue, earnedValue, factionID = addon:GetRepMatch(FactionName)
 
     if RepIndex ~= nil then
-        db.char.lastSaved = time()
+        self.db.char.lastSaved = time()
 
-        db.char.reputation[FactionName].gainedSession = db.char.reputation[FactionName].gainedSession + factionIncreasedBy
-        db.char.reputation[FactionName].gainedDay = db.char.reputation[FactionName].gainedDay + factionIncreasedBy
-        db.char.reputation[FactionName].gainedWeek = db.char.reputation[FactionName].gainedWeek + factionIncreasedBy
+        self.db.char.reputation[FactionName].gainedSession = self.db.char.reputation[FactionName].gainedSession + factionIncreasedBy
+        self.db.char.reputation[FactionName].gainedDay = self.db.char.reputation[FactionName].gainedDay + factionIncreasedBy
+        self.db.char.reputation[FactionName].gainedWeek = self.db.char.reputation[FactionName].gainedWeek + factionIncreasedBy
         amountGained = amountGained + factionIncreasedBy
 
         local nextStandingId = standingId + 1
@@ -203,18 +201,18 @@ function addon:CHAT_MSG_COMBAT_FACTION_CHANGE(event, ...)
         end
 
         local KillsToNext = ceil(.5 + (repLeftToLevel / factionIncreasedBy))
-        local estimatedTimeTolevel = repLeftToLevel / (db.char.reputation[FactionName].gainedSession / db.char.sessionTime)
+        local estimatedTimeTolevel = repLeftToLevel / (self.db.char.reputation[FactionName].gainedSession / self.db.char.sessionTime)
 
-        if db.global.announce_left == true and db.global.announce_time_left == true then
-            if db.global.announce_chat_frame == true then
-                self:GetChatFrame(string.format("WonderRep: " .. L['REPSTRFULL'], repLeftToLevel, FactionName, RepNextLevelName, KillsToNext, db.char.reputation[FactionName].gainedDay, addon:TimeTextMed(estimatedTimeTolevel), RepNextLevelName))
+        if self.db.global.announce_left == true and self.db.global.announce_time_left == true then
+            if self.db.global.announce_chat_frame == true then
+                self:GetChatFrame(string.format("WonderRep: " .. L['REPSTRFULL'], repLeftToLevel, FactionName, RepNextLevelName, KillsToNext, self.db.char.reputation[FactionName].gainedDay, addon:TimeTextMed(estimatedTimeTolevel), RepNextLevelName))
             else
-                print(string.format("WonderRep: " .. L['REPSTRFULL'], repLeftToLevel, FactionName, RepNextLevelName, KillsToNext, db.char.reputation[FactionName].gainedDay, addon:TimeTextMed(estimatedTimeTolevel), RepNextLevelName))
+                print(string.format("WonderRep: " .. L['REPSTRFULL'], repLeftToLevel, FactionName, RepNextLevelName, KillsToNext, self.db.char.reputation[FactionName].gainedDay, addon:TimeTextMed(estimatedTimeTolevel), RepNextLevelName))
             end
         end        
 
-        db.char.lastRepGained = FactionName
-        db.char.lastRepGainedIndex = RepIndex
+        self.db.char.lastRepGained = FactionName
+        self.db.char.lastRepGainedIndex = RepIndex
         if self:TimeLeft(timerId) == 0 then
             timerId = self:ScheduleTimer('ChangeWatched', 1)
         end
@@ -267,9 +265,9 @@ end
 
 function addon:CHAT_MSG_SYSTEM(event, ...)
     local arg1 = ...
-    if db.char.bufferedRepGain ~= "" then
-        arg1 = db.char.bufferedRepGain
-        db.char.bufferedRepGain = ""
+    if self.db.char.bufferedRepGain ~= "" then
+        arg1 = self.db.char.bufferedRepGain
+        self.db.char.bufferedRepGain = ""
     end
 
     -- Reputation with <REPNAME> increased by <AMOUNT>.
@@ -282,7 +280,7 @@ function addon:CHAT_MSG_SYSTEM(event, ...)
         return
       else
         -- reset buffer
-        db.char.BufferedRepGain = ""
+        self.db.char.BufferedRepGain = ""
       end
     end
 end
@@ -304,12 +302,12 @@ function addon:GetRepMatch(FactionName)
 end
 
 function addon:ChangeWatched()
-    if db.global.change_bar then
+    if self.db.global.change_bar then
         local watchedName = GetWatchedFactionInfo()
-        if db.char.lastRepGained ~= watchedName then
-            SetWatchedFactionIndex(db.char.lastRepGainedIndex)
-            if db.global.change_bar_announce == true then
-                print("WonderRep: " .. L["Reputation Bar changed to:"] .. " " .. db.char.lastRepGained .. ".")
+        if self.db.char.lastRepGained ~= watchedName then
+            SetWatchedFactionIndex(self.db.char.lastRepGainedIndex)
+            if self.db.global.change_bar_announce == true then
+                print("WonderRep: " .. L["Reputation Bar changed to:"] .. " " .. self.db.char.lastRepGained .. ".")
             end
         end
     end
@@ -325,15 +323,15 @@ function addon:UpdateFactions()
         if name == lastFactionName then break end
         lastFactionName = name
         if name then
-            if not db.char.reputation[name] then
-                db.char.reputation[name] = {
+            if not self.db.char.reputation[name] then
+                self.db.char.reputation[name] = {
                     gainedSession = 0,
                     gainedDay = 0,
                     gainedWeek = 0
                 }
-            elseif db.char.reputation[name].gainedDay == nil then
-                db.char.reputation[name].gainedDay = 0
-                db.char.reputation[name].gainedWeek = 0
+            elseif self.db.char.reputation[name].gainedDay == nil then
+                self.db.char.reputation[name].gainedDay = 0
+                self.db.char.reputation[name].gainedWeek = 0
             end
         end
         factionIndex = factionIndex + 1
@@ -443,17 +441,17 @@ function addon:SetTooltipContents()
 
         if name == lastFactionName then break end
         lastFactionName = name
-        if not isHeader and db.char.reputation[name] and db.char.reputation[name].gainedSession > 0 then
-            local estimatedTimeTolevel = repLeftToLevel / (db.char.reputation[name].gainedSession / db.char.sessionTime)
+        if not isHeader and self.db.char.reputation[name] and self.db.char.reputation[name].gainedSession > 0 then
+            local estimatedTimeTolevel = repLeftToLevel / (self.db.char.reputation[name].gainedSession / self.db.char.sessionTime)
 
             line = WRTip:AddLine()
             WRTip:SetCell(line, 1, name.."  ")
             WRTip:SetCell(line, 2, " "..repLevels[standingId].." ")
             WRTip:SetCell(line, 3, " "..roundedPercent.."% ")
             WRTip:SetCell(line, 4, " "..addon:TimeTextMed(estimatedTimeTolevel).." ")
-            WRTip:SetCell(line, 5, " "..db.char.reputation[name].gainedSession.." ")
-            WRTip:SetCell(line, 6, " "..db.char.reputation[name].gainedDay.." ")
-            WRTip:SetCell(line, 7, " "..db.char.reputation[name].gainedWeek.." ")
+            WRTip:SetCell(line, 5, " "..self.db.char.reputation[name].gainedSession.." ")
+            WRTip:SetCell(line, 6, " "..self.db.char.reputation[name].gainedDay.." ")
+            WRTip:SetCell(line, 7, " "..self.db.char.reputation[name].gainedWeek.." ")
         end
 
         factionIndex = factionIndex + 1
@@ -531,8 +529,8 @@ function addon:DataObjEnter(LDBFrame)
 end
 
 function addon:SessionTimer()
-    db.char.sessionTime = db.char.sessionTime + 1
-    if ((db.char.sessionTime % 5) == 0) then
+    self.db.char.sessionTime = self.db.char.sessionTime + 1
+    if ((self.db.char.sessionTime % 5) == 0) then
         self:SetBrokerText()
     end
 end
@@ -567,21 +565,21 @@ function addon:CheckStatsResets()
 
 
     -- for key,char in pairs(db.sv.char) do
-    if db.char.lastSaved ~= nill then
-        local lastSaved = db.char.lastSaved or time()
+    if self.db.char.lastSaved ~= nill then
+        local lastSaved = self.db.char.lastSaved or time()
 
         if lastSaved < startOfDay then
-            for k in pairs(db.char.reputation) do
-                db.char.reputation[k].gainedDay = 0
+            for k in pairs(self.db.char.reputation) do
+                self.db.char.reputation[k].gainedDay = 0
             end
         end
         if lastSaved < startOfWeek  then
-            for k in pairs(db.char.reputation) do
-                db.char.reputation[k].lastweek = db.char.reputation[k].gainedWeek
-                db.char.reputation[k].gainedWeek = 0
+            for k in pairs(self.db.char.reputation) do
+                self.db.char.reputation[k].lastweek = self.db.char.reputation[k].gainedWeek
+                self.db.char.reputation[k].gainedWeek = 0
             end
         end
-        db.char.lastSaved = time()
+        self.db.char.lastSaved = time()
     end
 
 
@@ -610,25 +608,25 @@ function addon:SetBrokerText()
             paraValue = paraValue - paraThreshold
         end
 
-        if db.global.display_name == true and standingID ~= nil then
+        if self.db.global.display_name == true and standingID ~= nil then
             dotext = name..": "
         else
             dotext = ""
         end
 
-        if db.global.display_level == true then
+        if self.db.global.display_level == true then
             dotext = dotext.."Paragon: "
         end
 
-        if db.global.display_percent == true then
+        if self.db.global.display_percent == true then
             local percent = (paraValue / paraThreshold) * 100
             local roundedPercent = percent + 0.5 - (percent + 0.5) % 1
             dotext = dotext..roundedPercent.."%: "
         end
 
-        if db.global.display_time == true and db.char.reputation[name] ~= nil then
+        if self.db.global.display_time == true and self.db.char.reputation[name] ~= nil then
             local repLeftToLevel = paraThreshold - paraValue
-            local estimatedTimeTolevel = repLeftToLevel / (db.char.reputation[name].gainedSession / db.char.sessionTime)
+            local estimatedTimeTolevel = repLeftToLevel / (self.db.char.reputation[name].gainedSession / self.db.char.sessionTime)
             dotext = dotext..addon:TimeTextMed(estimatedTimeTolevel)
         end
     elseif (standingID == 8) then
@@ -637,25 +635,25 @@ function addon:SetBrokerText()
         local trueMax = barMax - barMin
         local trueValue = barValue - barMin
 
-        if db.global.display_name == true and standingID ~= nil then
+        if self.db.global.display_name == true and standingID ~= nil then
             dotext = name..": "
         else
             dotext = ""
         end
 
-        if db.global.display_level == true then
+        if self.db.global.display_level == true then
             dotext = dotext..repLevels[standingID]..": "
         end
 
-        if db.global.display_percent == true then
+        if self.db.global.display_percent == true then
             local percent = (trueValue / trueMax) * 100
             local roundedPercent = percent + 0.5 - (percent + 0.5) % 1
             dotext = dotext..roundedPercent.."%: "
         end
 
-        if db.global.display_time == true and db.char.reputation[name] ~= nil then
+        if self.db.global.display_time == true and self.db.char.reputation[name] ~= nil then
             local repLeftToLevel = trueMax - trueValue
-            local estimatedTimeTolevel = repLeftToLevel / (db.char.reputation[name].gainedSession / db.char.sessionTime)
+            local estimatedTimeTolevel = repLeftToLevel / (self.db.char.reputation[name].gainedSession / self.db.char.sessionTime)
             dotext = dotext..addon:TimeTextMed(estimatedTimeTolevel)
         end
     end
@@ -687,50 +685,50 @@ function addon:ConfigFrame()
     local crbcb = createCheckbutton(cfgFrame, menuPad, -30-linePad, "wrcrb"," "..L["Enable change reputation watch bar on reputation change."]);
     crbcb:SetSize(30,30);
     crbcb:SetScript("PostClick", function()
-        db.global.change_bar = wrcrb:GetChecked()
+        self.db.global.change_bar = wrcrb:GetChecked()
         if wrcrb:GetChecked() then
             --L_UIDropDownMenu_EnableDropDown(ORaidDropDownMenu)
         else
             --L_UIDropDownMenu_DisableDropDown(ORaidDropDownMenu)
         end
     end);
-    if db.global.change_bar then crbcb:SetChecked(true) end
+    if self.db.global.change_bar then crbcb:SetChecked(true) end
 
     local crbacb = createCheckbutton(cfgFrame, menuPad, -30-(linePad*2), "wrcrba"," "..L["Enable announcement of reputation bar changes."]);
     crbacb:SetSize(30,30);
     crbacb:SetScript("PostClick", function()
-        db.global.change_bar_announce = wrcrba:GetChecked()
+        self.db.global.change_bar_announce = wrcrba:GetChecked()
         if wrcrba:GetChecked() then
             --L_UIDropDownMenu_EnableDropDown(ORaidDropDownMenu)
         else
             --L_UIDropDownMenu_DisableDropDown(ORaidDropDownMenu)
         end
     end);
-    if db.global.change_bar_announce then crbacb:SetChecked(true) end
+    if self.db.global.change_bar_announce then crbacb:SetChecked(true) end
 
     local atlcb = createCheckbutton(cfgFrame, menuPad, -30-(linePad*3), "wratl"," "..L["Enable announcement of time left to next level."]);
     atlcb:SetSize(30,30);
     atlcb:SetScript("PostClick", function()
-        db.global.announce_time_left = wratl:GetChecked()
+        self.db.global.announce_time_left = wratl:GetChecked()
         if wratl:GetChecked() then
             --L_UIDropDownMenu_EnableDropDown(ORaidDropDownMenu)
         else
             --L_UIDropDownMenu_DisableDropDown(ORaidDropDownMenu)
         end
     end);
-    if db.global.announce_time_left then atlcb:SetChecked(true) end
+    if self.db.global.announce_time_left then atlcb:SetChecked(true) end
 
     local atacf = createCheckbutton(cfgFrame, menuPad, -30-(linePad*4), "wracf"," "..L["Change announce messages to 'WonderRep' chat window."]);
     atacf:SetSize(30,30);
     atacf:SetScript("PostClick", function()
-        db.global.announce_chat_frame = wracf:GetChecked()
+        self.db.global.announce_chat_frame = wracf:GetChecked()
         if wracf:GetChecked() then
             --L_UIDropDownMenu_EnableDropDown(ORaidDropDownMenu)
         else
             --L_UIDropDownMenu_DisableDropDown(ORaidDropDownMenu)
         end
     end);
-    if db.global.announce_chat_frame then atacf:SetChecked(true) end
+    if self.db.global.announce_chat_frame then atacf:SetChecked(true) end
 end
 
 -- Startup Events --
@@ -746,6 +744,8 @@ function addon:OnInitialize()
         end,
         OnEnter = function(f) addon:DataObjEnter(f) end,
     })
+
+    self.db = LibStub("AceDB-3.0"):New("WonderRep_DB", sv_defaults, true)
 
     SLASH_WONDERREP1 = "/wonderrep"
     SLASH_WONDERREP2 = "/wr"
