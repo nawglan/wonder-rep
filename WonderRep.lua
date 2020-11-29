@@ -156,12 +156,10 @@ function addon:CHAT_MSG_COMBAT_FACTION_CHANGE(event, ...)
 
     if RepIndex ~= nil then
         self.db.char.lastSaved = time()
-
         self.db.char.reputation[FactionName].gainedSession = self.db.char.reputation[FactionName].gainedSession + factionIncreasedBy
         self.db.char.reputation[FactionName].gainedDay = self.db.char.reputation[FactionName].gainedDay + factionIncreasedBy
         self.db.char.reputation[FactionName].gainedWeek = self.db.char.reputation[FactionName].gainedWeek + factionIncreasedBy
         amountGained = amountGained + factionIncreasedBy
-
         local nextStandingId = standingId + 1
         local repLeftToLevel = 0
 
@@ -413,7 +411,7 @@ function addon:SetTooltipContents()
     repeat
         local name, description, standingId, bottomValue, topValue, earnedValue, atWarWith,
             canToggleAtWar, isHeader, isCollapsed, hasRep, isWatched, isChild, factionID = GetFactionInfo(factionIndex)
-        
+
         if factionID == nil then
             break
         end
@@ -421,7 +419,6 @@ function addon:SetTooltipContents()
         local paraValue, paraThreshold, paraQuestId, paraRewardPending = C_Reputation.GetFactionParagonInfo(factionID)
         
         local levelTop, levelEarned, percent, roundedPercent, repLeftToLevel
-
 
         if C_Reputation.IsFactionParagon(factionID) then
             while (paraValue > paraThreshold) do
@@ -441,7 +438,15 @@ function addon:SetTooltipContents()
 
         if name == lastFactionName then break end
         lastFactionName = name
-        if not isHeader and self.db.char.reputation[name] and self.db.char.reputation[name].gainedSession > 0 then
+        
+        local showTip = false
+        if isHeader and hasRep then
+            showTip = true
+        elseif not isHeader then
+            showTip = true
+        end
+
+        if showTip and self.db.char.reputation[name] and self.db.char.reputation[name].gainedSession > 0 then
             local estimatedTimeTolevel = repLeftToLevel / (self.db.char.reputation[name].gainedSession / self.db.char.sessionTime)
 
             line = WRTip:AddLine()

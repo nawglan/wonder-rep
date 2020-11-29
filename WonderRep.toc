@@ -1,6 +1,6 @@
 ## Interface: 90002
 ## Title: WonderRep
-## Version: 2.1.5
+## Version: 2.1.6
 ## Notes: Adds all sorts of functionality for reputation changes!
 ## OptionalDeps: Ace3
 
