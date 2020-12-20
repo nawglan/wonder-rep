@@ -136,7 +136,7 @@ function addon:CHAT_MSG_COMBAT_FACTION_CHANGE(event, ...)
     local HasIndexStart, HasIndexStop, FactionName, AmountGained = string.find(arg1, L["Reputation with (.*) increased by (%d+)."])
     if HasIndexStart == nil then
         -- Try the REPMATCHSTR2
-        HasIndexStart, HasIndexStop, FactionName, AmountGained = string.find(arg1, L["REPMATCHSTR2"])
+        HasIndexStart, HasIndexStop, FactionName, AmountGained = string.find(arg1, L["(.+) judges .+ %[(%d+) reputation gained%.%]"])
         if HasIndexStart == nil then
             -- still not found, probably not the string we want
             return
@@ -153,7 +153,6 @@ function addon:CHAT_MSG_COMBAT_FACTION_CHANGE(event, ...)
     end
 
     local RepIndex, standingId, topValue, earnedValue, factionID = addon:GetRepMatch(FactionName)
-
     if RepIndex ~= nil then
         self.db.char.lastSaved = time()
         self.db.char.reputation[FactionName].gainedSession = self.db.char.reputation[FactionName].gainedSession + factionIncreasedBy
@@ -267,12 +266,11 @@ function addon:CHAT_MSG_SYSTEM(event, ...)
         arg1 = self.db.char.bufferedRepGain
         self.db.char.bufferedRepGain = ""
     end
-
     -- Reputation with <REPNAME> increased by <AMOUNT>.
     local HasIndexStart, HasIndexStop, FactionName, AmountGained = string.find(arg1, L["Reputation with (.*) increased by (%d+)."])
     if HasIndexStart == nil then
       -- Try the REPMATCHSTR2
-      HasIndexStart, HasIndexStop, FactionName, AmountGained = string.find(arg1, L["REPMATCHSTR2"])
+      HasIndexStart, HasIndexStop, FactionName, AmountGained = string.find(arg1, L["(.+) judges .+ %[(%d+) reputation gained%.%]"])
       if HasIndexStart == nil then
         -- still not found, probably not the string we want
         return
@@ -445,7 +443,6 @@ function addon:SetTooltipContents()
         elseif not isHeader then
             showTip = true
         end
-
         if showTip and self.db.char.reputation[name] and self.db.char.reputation[name].gainedSession > 0 then
             local estimatedTimeTolevel = repLeftToLevel / (self.db.char.reputation[name].gainedSession / self.db.char.sessionTime)
 
@@ -461,8 +458,6 @@ function addon:SetTooltipContents()
 
         factionIndex = factionIndex + 1
     until factionIndex > GetNumFactions()
-
-
     WRTip:Show()
 end
 
