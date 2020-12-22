@@ -1,10 +1,10 @@
-lightweight tag c28b6ed63a46d6b75aea3f82e355b8cc3dfb3b24 v2.1.0
+tag 8aca5cfe3822cbcf35f30b7259076e845c22391e v2.1.6
 Author:	rellis6 <rellis6@gmail.com>
-Date:	Wed Jan 2 19:13:40 2019 -0500
+Date:	Sun Nov 29 16:27:48 2020 -0500
 
-commit c28b6ed63a46d6b75aea3f82e355b8cc3dfb3b24
+commit d4b552eb892ea89ef87110fbfeb6cef72e35dfc3
 Author: rellis6 <rellis6@gmail.com>
-Date:   Wed Jan 2 19:13:40 2019 -0500
+Date:   Sun Nov 29 16:26:03 2020 -0500
 
-    Updates for 8.1, including support for Paragon reputation earning. Took out some debug code left in perviously, and updated TOC and version number.
+    Small bug fix for some reputations not showing correctly in the databroker tooltips.
 

@@ -25,6 +25,6 @@ libs\AceEvent-3.0\AceEvent-3.0.xml
 libs\AceLocale-3.0\AceLocale-3.0.xml
 libs\AceTimer-3.0\AceTimer-3.0.xml
 
-Locales\enUS.lua
+Locales\Locales.xml
 
 WonderRep.lua

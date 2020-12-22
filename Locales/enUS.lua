@@ -1,7 +1,7 @@
 local debug = false
 --[===[@debug@ debug = true
 --@end-debug@]===]
-local L = LibStub("AceLocale-3.0"):NewLocale("WonderRep", "enUS", true, debug)
+local L = LibStub("AceLocale-3.0"):NewLocale("WonderRep", "enUS", true)
 if not L then return end
 L["Reputation Earned Summary"] = true
 L["|cffeda55fShift-Click|r to show options."] = true
