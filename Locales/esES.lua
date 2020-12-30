@@ -1,7 +1,7 @@
 local debug = false
 --[===[@debug@ debug = true
 --@end-debug@]===]
-local L = LibStub("AceLocale-3.0"):NewLocale("WonderRep", "esMX")
+local L = LibStub("AceLocale-3.0"):NewLocale("WonderRep", "esES")
 if not L then return end
 L["Reputation Earned Summary"] = true
 L["|cffeda55fShift-Click|r to show options."] = true
@@ -24,8 +24,8 @@ L["MAXEXALTED"] = "Máximo Exaltado"
 L["Paragon"] = true
 L["Guild"] = "Hermandad"
 L["Reputation with (.*) increased by (%d+)."] = ".*eputación con (.*) ha aumentado (%d+) p"
-L["REPMATCHSTR2"] = true
-L["(.+) judges .+ %[(%d+) reputation gained%.%]"] = ".*eputación con (.*) aumentada (%d+) p"
+L["REPMATCHSTR2"] = ".*eputación con (.*) aumentada (%d+) p"
+L["(.+) judges .+ %[(%d+) reputation gained%.%]"] = "Ahora (.+) aprecia .+ %[Reputación (%d+) conseguida%]%." -- Ahora Ve'nari aprecia más tu valía. [Reputación 850 conseguida].
 L["Reputation Bar changed to:"] = "La barra de reputación ha cambiado a:"
 L["Standing"] = true
 L["%"] = true

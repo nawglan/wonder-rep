@@ -141,14 +141,15 @@ function addon:CHAT_MSG_COMBAT_FACTION_CHANGE(event, ...)
     -- Reputation with <REPNAME> increased by <AMOUNT>.
     local HasIndexStart, HasIndexStop, FactionName, AmountGained = string.find(arg1, L["Reputation with (.*) increased by (%d+)."])
     if HasIndexStart == nil then
-        -- Try the REPMATCHSTR2
+        -- Try the Ve'nari one
         HasIndexStart, HasIndexStop, FactionName, AmountGained = string.find(arg1, L["(.+) judges .+ %[(%d+) reputation gained%.%]"])
         if HasIndexStart == nil then
-            -- still not found, probably not the string we want
-            return
-        else
-            -- reset buffer
-            self.db.char.BufferedRepGain = ""
+            -- Try the 2nd string for spanish
+            HasIndexStart, HasIndexStop, FactionName, AmountGained = string.find(arg1, L["REPMATCHSTR2"])
+            if HasIndexStart == nil then
+                -- still not found, probably not the string we want
+                return
+            end
         end
     end
 
