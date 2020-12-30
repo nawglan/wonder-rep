@@ -1,10 +1,16 @@
-tag 8aca5cfe3822cbcf35f30b7259076e845c22391e v2.1.6
+tag ca29a3d3f59ee3d9e2b7725893045c98759a03ae v2.1.9
 Author:	rellis6 <rellis6@gmail.com>
-Date:	Sun Nov 29 16:27:48 2020 -0500
+Date:	Mon Dec 21 21:49:22 2020 -0500
 
-commit d4b552eb892ea89ef87110fbfeb6cef72e35dfc3
+commit d8a1d04329aa3b60de775b9b5ee3492388196362
 Author: rellis6 <rellis6@gmail.com>
-Date:   Sun Nov 29 16:26:03 2020 -0500
+Date:   Mon Dec 21 21:49:08 2020 -0500
 
-    Small bug fix for some reputations not showing correctly in the databroker tooltips.
+    toc update
+
+commit a42c300eb78c88def9bd514563c67ec5802a39e9
+Author: rellis6 <rellis6@gmail.com>
+Date:   Mon Dec 21 21:46:50 2020 -0500
+
+    Added basic support for ES languages
 

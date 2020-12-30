@@ -76,6 +76,8 @@ local unitsBodyguards = {
     [3] = L["Personal Wingman"]     -- 20000 - 30000
 }
 
+local SEX = UnitSex("player")
+
 local function GetRegionStartOfWeek()
     local region = libRealmInfo:GetCurrentRegion()
     if region == "US" then
@@ -87,6 +89,10 @@ local function GetRegionStartOfWeek()
     end
 end
 
+function addon:GetFactionLabel(standingId)
+    if standingId == "paragon" then return "Paragon" end
+    return (SEX == 2 and _G["FACTION_STANDING_LABEL" .. standingId]) or _G["FACTION_STANDING_LABEL" .. standingId .. "_FEMALE"] or "?"
+end
 
 function addon:PLAYER_ENTERING_WORLD(event, ...)
     local isInitialLogin, isReloadingUi = ...
@@ -161,6 +167,11 @@ function addon:CHAT_MSG_COMBAT_FACTION_CHANGE(event, ...)
         amountGained = amountGained + factionIncreasedBy
         local nextStandingId = standingId + 1
         local repLeftToLevel = 0
+        local friendID, friendRep, friendMaxRep, friendName, friendText, friendTexture, friendTextLevel, friendThreshold, nextFriendThreshold = GetFriendshipReputation(factionID)
+        if (friendID) then
+            local currentRank, maxRank = GetFriendshipReputationRanks(factionID)
+            -- print(currentRank, maxRank)
+        end
 
         if addon:isFriendRep(FactionName) then
             local tmpVal = earnedValue / 8400
@@ -754,7 +765,6 @@ function addon:OnInitialize()
     end
 
     self.sessionTimer = self:ScheduleRepeatingTimer("SessionTimer", 1)
-
-
+    
     if IsLoggedIn() then self:PLAYER_ENTERING_WORLD() else self:RegisterEvent("PLAYER_ENTERING_WORLD") end
 end
