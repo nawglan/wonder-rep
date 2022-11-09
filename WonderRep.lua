@@ -168,9 +168,9 @@ function addon:CHAT_MSG_COMBAT_FACTION_CHANGE(event, ...)
         amountGained = amountGained + factionIncreasedBy
         local nextStandingId = standingId + 1
         local repLeftToLevel = 0
-        local friendID, friendRep, friendMaxRep, friendName, friendText, friendTexture, friendTextLevel, friendThreshold, nextFriendThreshold = GetFriendshipReputation(factionID)
+        local friendID, friendRep, friendMaxRep, friendName, friendText, friendTexture, friendTextLevel, friendThreshold, nextFriendThreshold = C_GossipInfo.GetFriendshipReputation(factionID)
         if (friendID) then
-            local currentRank, maxRank = GetFriendshipReputationRanks(factionID)
+            local currentRank, maxRank = C_GossipInfo.GetFriendshipReputationRanks(factionID)
             -- print(currentRank, maxRank)
         end
 
