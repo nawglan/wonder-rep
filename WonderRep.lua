@@ -190,6 +190,12 @@ function addon:CHAT_MSG_COMBAT_FACTION_CHANGE(event, ...)
                 return
             end
             repLeftToLevel = 10000 - (10000 * (tmpVal - tmpValInt))
+        elseif addon:isRenownRep(factionID) then
+            data = C_MajorFactions.GetMajorFactionData(factionID)
+            earnedValue = data['renownReputationEarned']
+            nextStandingId = data['renownLevel'] + 20 -- shortcut
+            topValue = data['renownLevelThreshold']
+            repLeftToLevel = topValue - earnedValue
         else
             if nextStandingId > 9 then
                 return
@@ -237,6 +243,9 @@ function addon:GetNextRepLevelName(FactionName, standingId)
     RepNextLevelName = unitsBodyguards[standingId]
   elseif (standingId <= 9) then
     RepNextLevelName = repLevels[standingId]
+  elseif (standingId >= 20) then
+    local new = standingId - 19
+    RepNextLevelName = L["Renown"] .. " " .. new
   end
 
   return RepNextLevelName
@@ -270,6 +279,16 @@ function addon:isBodyguardRep(FactionName)
     table.insert(BodyguardRep, L["Defender Illona"])
 
     return tContains(BodyguardRep, FactionName)
+end
+
+function addon:isRenownRep(factionID)
+    local RenownRep = {}
+    table.insert(RenownRep, 2507)
+    table.insert(RenownRep, 2510)
+    table.insert(RenownRep, 2511)
+    table.insert(RenownRep, 2503)
+
+    return tContains(RenownRep, factionID)
 end
 
 function addon:CHAT_MSG_SYSTEM(event, ...)
@@ -421,7 +440,7 @@ function addon:SetTooltipContents()
     repeat
         local name, description, standingId, bottomValue, topValue, earnedValue, atWarWith,
             canToggleAtWar, isHeader, isCollapsed, hasRep, isWatched, isChild, factionID = GetFactionInfo(factionIndex)
-
+        standingName = repLevels[standingId]
         if factionID == nil then
             break
         end
@@ -437,6 +456,13 @@ function addon:SetTooltipContents()
             levelTop = paraThreshold
             levelEarned = paraValue
             repLeftToLevel = paraThreshold - paraValue
+        elseif addon:isRenownRep(factionID) then
+            data = C_MajorFactions.GetMajorFactionData(factionID)
+            levelEarned = data['renownReputationEarned']
+            nextStandingId = data['renownLevel']
+            levelTop = data['renownLevelThreshold']
+            repLeftToLevel = levelTop - levelEarned
+            standingName = L["Renown"].." "..nextStandingId
         else 
             levelTop = topValue - bottomValue
             levelEarned = earnedValue - bottomValue
@@ -460,7 +486,7 @@ function addon:SetTooltipContents()
 
             line = WRTip:AddLine()
             WRTip:SetCell(line, 1, name.."  ")
-            WRTip:SetCell(line, 2, " "..repLevels[standingId].." ")
+            WRTip:SetCell(line, 2, " "..standingName.." ")
             WRTip:SetCell(line, 3, " "..roundedPercent.."% ")
             WRTip:SetCell(line, 4, " "..addon:TimeTextMed(estimatedTimeTolevel).." ")
             WRTip:SetCell(line, 5, " "..self.db.char.reputation[name].gainedSession.." ")

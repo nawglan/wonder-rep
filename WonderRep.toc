@@ -1,11 +1,11 @@
 ## Interface: 100002
 ## Title: WonderRep
-## Version: 2.1.14
+## Version: 2.1.15
 ## Notes: Adds all sorts of functionality for reputation changes!
 ## OptionalDeps: Ace3
 
 ## SavedVariables: WonderRep_DB
-## X-Curse-Packaged-Version: v2.1.14
+## X-Curse-Packaged-Version: v2.1.15
 ## X-Curse-Project-Name: WonderRep (Reputation)
 ## X-Curse-Project-ID: wonder-rep-reputation
 ## X-Curse-Repository-ID: wow/wonder-rep-reputation/mainline
