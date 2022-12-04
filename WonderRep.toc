@@ -1,14 +1,16 @@
 ## Interface: 100002
 ## Title: WonderRep
-## Version: 2.1.15
+## Version: 2.1.16
 ## Notes: Adds all sorts of functionality for reputation changes!
 ## OptionalDeps: Ace3
 
 ## SavedVariables: WonderRep_DB
-## X-Curse-Packaged-Version: v2.1.15
+## X-Curse-Packaged-Version: v2.1.16
 ## X-Curse-Project-Name: WonderRep (Reputation)
-## X-Curse-Project-ID: wonder-rep-reputation
+## X-Curse-Project-ID: 2050
 ## X-Curse-Repository-ID: wow/wonder-rep-reputation/mainline
+## X-Wago-ID: RBKprONE
+## X-WoWI-ID: 13144
 
 libs\LibStub\LibStub.lua
 libs\CallbackHandler-1.0\CallbackHandler-1.0.xml

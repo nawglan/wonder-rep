@@ -638,7 +638,7 @@ function addon:SetBrokerText()
     local name, standingID, barMin, barMax, barValue, factionID = GetWatchedFactionInfo()
     local RepIndex, standingId, topValue, earnedValue = addon:GetRepMatch(name)
     local paraValue, paraThreshold, paraQuestId, paraRewardPending = C_Reputation.GetFactionParagonInfo(factionID)
-
+    local repLevelName = repLevels[standingID]
     if name == nil then
         dotext = L["No Watched Faction"]
     elseif C_Reputation.IsFactionParagon(factionID) then
@@ -670,6 +670,14 @@ function addon:SetBrokerText()
     elseif (standingID == 8) then
         dotext = name..": "..L["maxed, pick another faction."]
     else
+        if addon:isRenownRep(factionID) then
+            data = C_MajorFactions.GetMajorFactionData(factionID)
+            barValue = data['renownReputationEarned']
+            standingID = data['renownLevel']
+            barMax = data['renownLevelThreshold']
+            repLevelName = L["Renown"].." "..standingID
+            barMin = 0
+        end
         local trueMax = barMax - barMin
         local trueValue = barValue - barMin
 
@@ -680,7 +688,7 @@ function addon:SetBrokerText()
         end
 
         if self.db.global.display_level == true then
-            dotext = dotext..repLevels[standingID]..": "
+            dotext = dotext..repLevelName..": "
         end
 
         if self.db.global.display_percent == true then
