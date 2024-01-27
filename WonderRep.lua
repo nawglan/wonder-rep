@@ -147,8 +147,12 @@ function addon:CHAT_MSG_COMBAT_FACTION_CHANGE(event, ...)
             -- Try the 2nd string for spanish
             HasIndexStart, HasIndexStop, FactionName, AmountGained = string.find(arg1, L["REPMATCHSTR2"])
             if HasIndexStart == nil then
-                -- still not found, probably not the string we want
-                return
+                -- Try the 2nd string for spanish
+                HasIndexStart, HasIndexStop, FactionName, AmountGained = string.find(arg1, L["Your (.*) reputation has increased by (%d+)."])
+                if HasIndexStart == nil then
+                    -- still not found, probably not the string we want
+                    return
+                end
             end
         end
     end

@@ -25,6 +25,7 @@ L["Paragon"] = true
 L["Guild"] = true
 L["Reputation with (.*) increased by (%d+)."] = true
 L["REPMATCHSTR2"] = true
+L["Your (.*) reputation has increased by (%d+)."] = true
 L["(.+) judges .+ %[(%d+) reputation gained%.%]"] = true
 L["Reputation Bar changed to:"] = true
 L["Standing"] = true
