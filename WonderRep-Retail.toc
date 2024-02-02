@@ -1,5 +1,5 @@
-## Interface: 11500
-## Title: WonderRep |cff774422(Classic)
+## Interface: 100205
+## Title: WonderRep
 ## Version: 2.1.18
 ## Notes: Adds all sorts of functionality for reputation changes!
 
