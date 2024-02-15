@@ -72,3 +72,7 @@ L["maxed, pick another faction."] = true
 L["OPENOPTIONS"] = "Opens the options panel."
 L["Change announce messages to 'WonderRep' chat window."] = true
 L["Renown"] = true
+L["Preferred"] = true
+L["Respected"] = true
+L["Valued"] = true
+L["Esteemed"] = true
