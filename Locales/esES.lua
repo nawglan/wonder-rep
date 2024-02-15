@@ -58,20 +58,53 @@ L["Vivianne"] = true
 L["Delvar Ironfist"] = true
 L["Aeda Brightdawn"] = "Aeda Brightdawn"
 L["Defender Illona"] = true
-L["Stranger"] = "Extraño"        	--     0 -  8400
-L["Acquaintance"] = "Conocido"    	--  8400 - 16800
-L["Buddy"] = "Compañero"           	-- 16800 - 25200
-L["Friend"] = "Amigo"          	-- 25200 - 33600
-L["Good Friend"] = "Buen amigo"     	-- 33600 - 42000
-L["Best Friend"] = "Mejor amigo"     	-- 42000 - 42999
-L["Bodyguard"] = true          	--     0 - 10000
-L["Trusted Bodyguard"] = true  	-- 10000 - 20000
-L["Personal Wingman"] = true    -- 20000 - 30000
+L["Stranger"] = "Extraño"            --     0 -  8400
+L["Acquaintance"] = "Conocido"       --  8400 - 16800
+L["Buddy"] = "Compañero"             -- 16800 - 25200
+L["Friend"] = "Amigo"                -- 25200 - 33600
+L["Good Friend"] = "Buen amigo"      -- 33600 - 42000
+L["Best Friend"] = "Mejor amigo"     -- 42000 - 42999
+L["Bodyguard"] = true                --     0 - 10000
+L["Trusted Bodyguard"] = true        -- 10000 - 20000
+L["Personal Wingman"] = true         -- 20000 - 30000
 L["maxed, pick another faction."] = true
 L["OPENOPTIONS"] = "Opens the options panel."
 L["Change announce messages to 'WonderRep' chat window."] = true
 L["Renown"] = true
-L["Preferred"] = true
-L["Respected"] = true
-L["Valued"] = true
-L["Esteemed"] = true
+-- Artisan's Consortium - Dragon Isles Branch
+-- L["Neutral"] = true          --     0 -   500
+L["Preferred"] = true           --   500 -  2500
+L["Respected"] = true           --  2500 -  5500
+L["Valued"] = true              --  5500 - 12500
+L["Esteemed"] = true            -- 12500
+-- Glimmerogg Racer
+L["Aspirational"] = true        --     0 -   700
+L["Amateur"] = true             --   700 -  1400
+L["Competent"] = true           --  1400 -  2100
+L["Skilled"] = true             --  2100 -  2800
+L["Professional"] = true        --  2800
+-- Azerothian Archives
+L["Junior"] = true              --     0 - 10500
+L["Capable"] = true             -- 10500 - 21000
+L["Learned"] = true             -- 21000 - 32500
+L["Resident"] = true            -- 32500 - 42000
+L["Tenured"] = true             -- 42000
+-- Soridormi
+L["Anomaly"] = true             --     0 -  7000
+L["Future Friend"] = true       --  7000 - 14000
+L["Rift-Mender"] = true         -- 14000 - 24000
+L["Timewalker"] = true          -- 24000 - 42000
+L["Legend"] = true              -- 42000
+-- Cobalt Assembly
+L["Empty"] = true               --     0 -   300
+L["Low"] = true                 --   300 -  1200
+L["Medium"] = true              --  1200 -  3600
+L["High"] = true                --  3600 - 10000
+L["Maximum"] = true             -- 10000
+-- Wrathion / Sabellian
+L["Acquaintance"] = true        --     0 -  8400
+L["Cohort"] = true              --  8400 - 16800
+L["Ally"] = true                -- 16800 - 25200
+L["Fang"] = true                -- 25200 - 33600
+-- L["Friend"] = true           -- 33600 - 42000
+L["True Friend"] = true         -- 42000
