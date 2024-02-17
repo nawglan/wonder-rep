@@ -46,7 +46,6 @@ local sv_defaults = {
 }
 
 local options = {
-    
 }
 
 local repLevels = {
@@ -62,18 +61,67 @@ local repLevels = {
 }
 
 local unitsFriends = {
-    [1] = L["Stranger"],        --     0 -  8400
-    [2] = L["Acquaintance"],    --  8400 - 16800
-    [3] = L["Buddy"],           -- 16800 - 25200
-    [4] = L["Friend"],          -- 25200 - 33600
-    [5] = L["Good Friend"],     -- 33600 - 42000
-    [6] = L["Best Friend"]      -- 42000 - 42999
+    [1] = L["Stranger"],          --     0 -  8400
+    [2] = L["Acquaintance"],      --  8400 - 16800
+    [3] = L["Buddy"],             -- 16800 - 25200
+    [4] = L["Friend"],            -- 25200 - 33600
+    [5] = L["Good Friend"],       -- 33600 - 42000
+    [6] = L["Best Friend"]        -- 42000 - 42999
 }
 
 local unitsBodyguards = {
-    [1] = L["Bodyguard"],           --     0 - 10000
-    [2] = L["Trusted Bodyguard"],   -- 10000 - 20000
-    [3] = L["Personal Wingman"]     -- 20000 - 30000
+    [1] = L["Bodyguard"],         --     0 - 10000
+    [2] = L["Trusted Bodyguard"], -- 10000 - 20000
+    [3] = L["Personal Wingman"]   -- 20000 - 30000
+}
+
+local unitsAzerothianArchives = {
+    [1] = L["Junior"],            --     0 - 10500
+    [2] = L["Capable"],           -- 10500 - 31500
+    [3] = L["Learned"],           -- 31500 - 64000
+    [4] = L["Resident"]           -- 64000 - 106000
+    [5] = L["Tenured"]            --106000
+}
+
+local unitsSoridormi = {
+    [1] = L["Anomaly"],           --     0 - 7000
+    [2] = L["Future Friend"],     --  7000 - 14000
+    [3] = L["Rift-Mender"],       -- 14000 - 24000
+    [4] = L["Timewalker"]         -- 24000 - 42000
+    [5] = L["Legend"]             -- 42000
+}
+
+local unitsGlimmeroggRacer = {
+    [1] = L["Aspirational"],      --     0 - 700
+    [2] = L["Amateur"],           --   700 - 1400
+    [3] = L["Competent"],         --  1400 - 2100
+    [4] = L["Skilled"]            --  2100 - 2800
+    [5] = L["Professional"]       --  2800
+}
+
+local unitsArtisanConsortium = {
+    [1] = L["NEUTRAL"],           --     0 - 500
+    [2] = L["Preferred"],         --   500 - 2500
+    [3] = L["Respected"],         --  2500 - 5500
+    [4] = L["Valued"]             --  5500 - 12500
+    [5] = L["Esteemed"]           -- 12500
+}
+
+local unitsCobaltAssembly = {
+    [1] = L["Empty"],             --     0 - 300
+    [2] = L["Low"],               --   300 - 1500
+    [3] = L["Medium"],            --  1500 - 5100
+    [4] = L["High"]               --  5100 - 15100
+    [5] = L["Maximum"]            -- 15100
+}
+
+local unitsValdrakkenAccord = {
+    [1] = L["Acquaintance"],      --     0 - 8400
+    [2] = L["Cohort"],            --  8400 - 16800
+    [3] = L["Ally"],              -- 16800 - 25200
+    [4] = L["Fang"]               -- 25200 - 33600
+    [5] = L["Friend"]             -- 33600 - 42000
+    [6] = L["True Friend"]        -- 42000
 }
 
 local SEX = UnitSex("player")
@@ -178,7 +226,7 @@ function addon:CHAT_MSG_COMBAT_FACTION_CHANGE(event, ...)
             -- print(currentRank, maxRank)
         end
 
-        if addon:isFriendRep(FactionName) then
+        if addon:isFriendRep(FactionName) or addon:isValdrakkenRep(FactionName) then
             local tmpVal = earnedValue / 8400
             local tmpValInt = floor(tmpVal)
             nextStandingId = tmpValInt + 2
@@ -194,6 +242,86 @@ function addon:CHAT_MSG_COMBAT_FACTION_CHANGE(event, ...)
                 return
             end
             repLeftToLevel = 10000 - (10000 * (tmpVal - tmpValInt))
+        elseif addon:isAzerothianArchivesRep(FactionName) then
+          if earnedValue < 10500 then
+            repLeftToLevel = 10500 - earnedValue
+            nextStandingId = 2
+          elseif earnedValue < 31500 then
+            repLeftToLevel = 31500 - earnedValue
+            nextStandingId = 3
+          elseif earnedValue < 64000 then
+            repLeftToLevel = 64000 - earnedValue
+            nextStandingId = 4
+          elseif earnedValue < 106000 then
+            repLeftToLevel = 106000 - earnedValue
+            nextStandingId = 5
+          else
+            return
+          end
+        elseif addon:isSoridormiRep(FactionName) then
+          if earnedValue < 7000 then
+            repLeftToLevel = 7000 - earnedValue
+            nextStandingId = 2
+          elseif earnedValue < 14000 then
+            repLeftToLevel = 14000 - earnedValue
+            nextStandingId = 3
+          elseif earnedValue < 24000 then
+            repLeftToLevel = 24000 - earnedValue
+            nextStandingId = 4
+          elseif earnedValue < 42000 then
+            repLeftToLevel = 42000 - earnedValue
+            nextStandingId = 5
+          else
+            return
+          end
+        elseif addon:isGlimmeroggRacerRep(FactionName) then
+          if earnedValue < 700 then
+            repLeftToLevel = 700 - earnedValue
+            nextStandingId = 2
+          elseif earnedValue < 1400 then
+            repLeftToLevel = 1400 - earnedValue
+            nextStandingId = 3
+          elseif earnedValue < 2100 then
+            repLeftToLevel = 2100 - earnedValue
+            nextStandingId = 4
+          elseif earnedValue < 2800 then
+            repLeftToLevel = 2800 - earnedValue
+            nextStandingId = 5
+          else
+            return
+          end
+        elseif addon:isArtisanConsortiumRep(FactionName) then
+          if earnedValue < 500 then
+            repLeftToLevel = 500 - earnedValue
+            nextStandingId = 2
+          elseif earnedValue < 2500 then
+            repLeftToLevel = 2500 - earnedValue
+            nextStandingId = 3
+          elseif earnedValue < 5500 then
+            repLeftToLevel = 5500 - earnedValue
+            nextStandingId = 4
+          elseif earnedValue < 12500 then
+            repLeftToLevel = 12500 - earnedValue
+            nextStandingId = 5
+          else
+            return
+          end
+        elseif addon:isCobaltAssemblyRep(FactionName) then
+          if earnedValue < 300 then
+            repLeftToLevel = 300 - earnedValue
+            nextStandingId = 2
+          elseif earnedValue < 1500 then
+            repLeftToLevel = 1500 - earnedValue
+            nextStandingId = 3
+          elseif earnedValue < 5100 then
+            repLeftToLevel = 5100 - earnedValue
+            nextStandingId = 4
+          elseif earnedValue < 15100 then
+            repLeftToLevel = 15100 - earnedValue
+            nextStandingId = 5
+          else
+            return
+          end
         elseif addon:isRenownRep(factionID) then
             data = C_MajorFactions.GetMajorFactionData(factionID)
             earnedValue = data['renownReputationEarned']
@@ -245,6 +373,18 @@ function addon:GetNextRepLevelName(FactionName, standingId)
     RepNextLevelName = unitsFriends[standingId]
   elseif addon:isBodyguardRep(FactionName) and standingId <= 3 then
     RepNextLevelName = unitsBodyguards[standingId]
+  elseif addon:isAzerothianArchivesRep(FactionName) and standingId <= 5 then
+    RepNextLevelName = unitsAzerothianArchives[standingId]
+  elseif addon:isSoridormiRep(FactionName) and standingId <= 5 then
+    RepNextLevelName = unitsSoridormi[standingId]
+  elseif addon:isGlimmeroggRacerRep(FactionName) and standingId <= 5 then
+    RepNextLevelName = unitsSoridormi[standingId]
+  elseif addon:isArtisanConsortiumRep(FactionName) and standingId <= 5 then
+    RepNextLevelName = unitsSoridormi[standingId]
+  elseif addon:isCobaltAssemblyRep(FactionName) and standingId <= 5 then
+    RepNextLevelName = unitsCobaltAssembly[standingId]
+  elseif addon:isValdrakkenRep(FactionName) and standingId <= 6 then
+    RepNextLevelName = unitsValdkrakkenAccord[standingId]
   elseif (standingId <= 9) then
     RepNextLevelName = repLevels[standingId]
   elseif (standingId >= 20) then
@@ -293,6 +433,49 @@ function addon:isRenownRep(factionID)
     table.insert(RenownRep, 2503)
 
     return tContains(RenownRep, factionID)
+end
+
+function addon:isAzerothianArchivesRep(FactionName)
+    local AzerothianRep = {}
+    table.insert(AzerothianRep, L["Azerothian Archives"])
+
+    return tContains(AzerothianRep, FactionName)
+end
+
+function addon:isSoridormiRep(FactionName)
+    local SoridormiRep = {}
+    table.insert(SoridormiRep, L["Soridormi"])
+
+    return tContains(SoridormiRep, FactionName)
+end
+
+function addon:isGlimmeroggRacerRep(FactionName)
+    local GlimmeroggRep = {}
+    table.insert(GlimmeroggRep, L["Glimmerogg Racer"])
+
+    return tContains(GlimmeroggRep, FactionName)
+end
+
+function addon:isArtisanConsortiumRep(FactionName)
+    local ArtisanRep = {}
+    table.insert(ArtisanRep, L["Artisan's Consortium - Dragon Isles Branch"])
+
+    return tContains(ArtisanRep, FactionName)
+end
+
+function addon:isCobaltAssemblyRep(FactionName)
+    local CobaltRep = {}
+    table.insert(CobaltRep, L["Cobalt Assembly"])
+
+    return tContains(CobaltRep FactionName)
+end
+
+function addon:isValdrakkenRep(FactionName)
+    local ValdrakkenRep = {}
+    table.insert(ValdrakkenRep, L["Wrathion"])
+    table.insert(ValdrakkenRep, L["Sabellian"])
+
+    return tContains(ValdrakkenRep, FactionName)
 end
 
 function addon:CHAT_MSG_SYSTEM(event, ...)
