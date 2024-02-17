@@ -79,7 +79,7 @@ local unitsAzerothianArchives = {
     [1] = L["Junior"],            --     0 - 10500
     [2] = L["Capable"],           -- 10500 - 31500
     [3] = L["Learned"],           -- 31500 - 64000
-    [4] = L["Resident"]           -- 64000 - 106000
+    [4] = L["Resident"],          -- 64000 - 106000
     [5] = L["Tenured"]            --106000
 }
 
@@ -87,7 +87,7 @@ local unitsSoridormi = {
     [1] = L["Anomaly"],           --     0 - 7000
     [2] = L["Future Friend"],     --  7000 - 14000
     [3] = L["Rift-Mender"],       -- 14000 - 24000
-    [4] = L["Timewalker"]         -- 24000 - 42000
+    [4] = L["Timewalker"],        -- 24000 - 42000
     [5] = L["Legend"]             -- 42000
 }
 
@@ -95,7 +95,7 @@ local unitsGlimmeroggRacer = {
     [1] = L["Aspirational"],      --     0 - 700
     [2] = L["Amateur"],           --   700 - 1400
     [3] = L["Competent"],         --  1400 - 2100
-    [4] = L["Skilled"]            --  2100 - 2800
+    [4] = L["Skilled"],           --  2100 - 2800
     [5] = L["Professional"]       --  2800
 }
 
@@ -103,7 +103,7 @@ local unitsArtisanConsortium = {
     [1] = L["NEUTRAL"],           --     0 - 500
     [2] = L["Preferred"],         --   500 - 2500
     [3] = L["Respected"],         --  2500 - 5500
-    [4] = L["Valued"]             --  5500 - 12500
+    [4] = L["Valued"],            --  5500 - 12500
     [5] = L["Esteemed"]           -- 12500
 }
 
@@ -111,7 +111,7 @@ local unitsCobaltAssembly = {
     [1] = L["Empty"],             --     0 - 300
     [2] = L["Low"],               --   300 - 1500
     [3] = L["Medium"],            --  1500 - 5100
-    [4] = L["High"]               --  5100 - 15100
+    [4] = L["High"],              --  5100 - 15100
     [5] = L["Maximum"]            -- 15100
 }
 
@@ -119,8 +119,8 @@ local unitsValdrakkenAccord = {
     [1] = L["Acquaintance"],      --     0 - 8400
     [2] = L["Cohort"],            --  8400 - 16800
     [3] = L["Ally"],              -- 16800 - 25200
-    [4] = L["Fang"]               -- 25200 - 33600
-    [5] = L["Friend"]             -- 33600 - 42000
+    [4] = L["Fang"],              -- 25200 - 33600
+    [5] = L["Friend"],            -- 33600 - 42000
     [6] = L["True Friend"]        -- 42000
 }
 
@@ -467,7 +467,7 @@ function addon:isCobaltAssemblyRep(FactionName)
     local CobaltRep = {}
     table.insert(CobaltRep, L["Cobalt Assembly"])
 
-    return tContains(CobaltRep FactionName)
+    return tContains(CobaltRep, FactionName)
 end
 
 function addon:isValdrakkenRep(FactionName)
