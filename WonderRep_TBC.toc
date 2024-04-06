@@ -1,7 +1,8 @@
 ## Interface: 20504
 ## Title: WonderRep
-## Version: 2.2.6
+## Version: 2.2.7
 ## Notes: Adds all sorts of functionality for reputation changes!
+## X-Flavor: TBC
 
 ## SavedVariables: WonderRep_DB
 
