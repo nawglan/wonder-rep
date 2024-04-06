@@ -2,6 +2,7 @@
 ## Title: WonderRep
 ## Version: 2.2.6
 ## Notes: Adds all sorts of functionality for reputation changes!
+## X-Flavor: TBC
 
 ## SavedVariables: WonderRep_DB
 
