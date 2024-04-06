@@ -1,0 +1,24 @@
+## Interface: 30403
+## Title: WonderRep
+## Version: 2.2.5
+## Notes: Adds all sorts of functionality for reputation changes!
+
+## SavedVariables: WonderRep_DB
+
+libs\LibStub\LibStub.lua
+libs\CallbackHandler-1.0\CallbackHandler-1.0.xml
+libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
+libs\LibRealmInfo\LibRealmInfo.lua
+Libs\LibQTip-1.0\LibQTip-1.0.lua
+
+libs\AceAddon-3.0\AceAddon-3.0.xml
+libs\AceGUI-3.0\AceGUI-3.0.xml
+libs\AceDB-3.0\AceDB-3.0.xml
+libs\AceConfig-3.0\AceConfig-3.0.xml
+libs\AceEvent-3.0\AceEvent-3.0.xml
+libs\AceLocale-3.0\AceLocale-3.0.xml
+libs\AceTimer-3.0\AceTimer-3.0.xml
+
+Locales\Locales.xml
+
+WonderRep.lua
