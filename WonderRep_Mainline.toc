@@ -1,6 +1,6 @@
 ## Interface: 100206
 ## Title: WonderRep
-## Version: 2.2.7
+## Version: 2.2.8
 ## Notes: Adds all sorts of functionality for reputation changes!
 ## X-Flavor: Mainline
 
