@@ -1,6 +1,6 @@
-## Interface: 100206
+## Interface: 20504
 ## Title: WonderRep
-## Version: 2.2.5
+## Version: 2.2.6
 ## Notes: Adds all sorts of functionality for reputation changes!
 
 ## SavedVariables: WonderRep_DB
