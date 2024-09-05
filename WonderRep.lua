@@ -8,8 +8,6 @@ local configFrame = nil
 
 local L = LibStub('AceLocale-3.0'):GetLocale(addonName)
 
-local VERSION = GetAddOnMetadata(addonName, 'Version')
-
 local libLDB  = LibStub('LibDataBroker-1.1')
 local libQTip = LibStub('LibQTip-1.0')
 local WRTip -- Tooltip object
@@ -153,7 +151,6 @@ function addon:PLAYER_ENTERING_WORLD(event, ...)
         self.db.char.sessionTime = 0
         self.db.char.lastRepGained = nil
     end
-    addon:ConfigFrame()
     self:RegisterEvent("CHAT_MSG_COMBAT_FACTION_CHANGE") -- changes in faction come in on this channel
     self:RegisterEvent("CHAT_MSG_SYSTEM") -- New factions come in on this channel
 
@@ -162,7 +159,11 @@ function addon:PLAYER_ENTERING_WORLD(event, ...)
     self:CheckStatsResets()
     self:UpdateFactions()
     self:SetBrokerText()
-
+    if Settings.CreateCheckbox then
+        addon:ConfigFrameNew()
+    else
+        addon:ConfigFrame()
+    end
 end
 
 local function PrintHelp()
@@ -499,12 +500,20 @@ function addon:CHAT_MSG_SYSTEM(event, ...)
     end
 end
 
+function addon:GetNumFactions()
+    if C_Reputation.GetNumFactions then
+        return C_Reputation.GetNumFactions()
+    else
+        return GetNumFactions()
+    end
+end
+
 function addon:GetRepMatch(FactionName)
     local factionIndex = 1
     local lastFactionName
     repeat
         local name, description, standingId, bottomValue, topValue, earnedValue, atWarWith,
-            canToggleAtWar, isHeader, isCollapsed, hasRep, isWatched, isChild, factionID = GetFactionInfo(factionIndex)
+            canToggleAtWar, isHeader, isCollapsed, hasRep, isWatched, isChild, factionID = addon:GetFactionInfo(factionIndex)
         if name == lastFactionName then break end
         lastFactionName = name
         if name == FactionName then
@@ -512,12 +521,12 @@ function addon:GetRepMatch(FactionName)
         end
 
         factionIndex = factionIndex + 1
-    until factionIndex > GetNumFactions()
+    until factionIndex > addon:GetNumFactions()
 end
 
 function addon:ChangeWatched()
     if self.db.global.change_bar then
-        local watchedName = GetWatchedFactionInfo()
+        local watchedName = addon:GetWatchedFactionInfo()
         if self.db.char.lastRepGained ~= watchedName then
             SetWatchedFactionIndex(self.db.char.lastRepGainedIndex)
             if self.db.global.change_bar_announce == true then
@@ -533,7 +542,7 @@ function addon:UpdateFactions()
 
     -- update known factions
     repeat
-        local name = GetFactionInfo(factionIndex)
+        local name = addon:GetFactionInfo(factionIndex)
         if name == lastFactionName then break end
         lastFactionName = name
         if name then
@@ -549,7 +558,7 @@ function addon:UpdateFactions()
             end
         end
         factionIndex = factionIndex + 1
-    until factionIndex > GetNumFactions()
+    until factionIndex > addon:GetNumFactions()
 end
 
 function addon:GetChatFrame(msg)
@@ -626,7 +635,7 @@ function addon:SetTooltipContents()
     local lastFactionName = ""
     repeat
         local name, description, standingId, bottomValue, topValue, earnedValue, atWarWith,
-            canToggleAtWar, isHeader, isCollapsed, hasRep, isWatched, isChild, factionID = GetFactionInfo(factionIndex)
+            canToggleAtWar, isHeader, isCollapsed, hasRep, isWatched, isChild, factionID = addon:GetFactionInfo(factionIndex)
         standingName = repLevels[standingId]
         if factionID == nil then
             break
@@ -682,7 +691,7 @@ function addon:SetTooltipContents()
         end
 
         factionIndex = factionIndex + 1
-    until factionIndex > GetNumFactions()
+    until factionIndex > addon:GetNumFactions()
     WRTip:Show()
 end
 
@@ -818,11 +827,30 @@ function addon:CheckStatsResets()
     self:ScheduleTimer('CheckStatsResets', next_check)
 end
 
+function addon:GetWatchedFactionInfo()
+    if C_Reputation.GetWatchedFactionData then
+        local data = C_Reputation.GetWatchedFactionData()
+        return data.name, data.reaction, data.currentReactionThreshold, data.nextReactionThreshold, data.currentStanding, data.factionID
+    else
+      return GetWatchedFactionInfo()
+    end   
+end
+
+function addon:GetFactionInfo(factionIndex)
+    if C_Reputation.GetFactionDataByIndex then
+        local data = C_Reputation.GetFactionDataByIndex(factionIndex)
+        return data.name, data.description, data.reaction, data.currentReactionThreshold, data.nextReactionThreshold, data.currentStanding, data.atWarWith, data.canToggleAtWar, data.isHeader, data.isCollapsed, data.isHeaderWithRep, data.isWatched, data.isChild, data.factionID
+    else
+      return GetFactionInfo(factionIndex)
+    end
+end
+
+
 function addon:SetBrokerText()
     local dotext
     self.dataobj.icon = azeriteItemIcon
     
-    local name, standingID, barMin, barMax, barValue, factionID = GetWatchedFactionInfo()
+    local name, standingID, barMin, barMax, barValue, factionID = addon:GetWatchedFactionInfo()
     local RepIndex, standingId, topValue, earnedValue = addon:GetRepMatch(name)
     local paraValue, paraThreshold, paraQuestId, paraRewardPending = C_Reputation.GetFactionParagonInfo(factionID)
     local repLevelName = repLevels[standingID]
@@ -990,3 +1018,42 @@ function addon:OnInitialize()
     
     if IsLoggedIn() then self:PLAYER_ENTERING_WORLD() else self:RegisterEvent("PLAYER_ENTERING_WORLD") end
 end
+
+function addon:ConfigFrameNew()
+    local category = Settings.RegisterVerticalLayoutCategory("WonderRep")
+
+    do
+        local variable = "change_bar"
+        local name = L["Change Watch Bar"]
+        local tooltip = L["Enable change reputation watch bar on reputation change."]
+        local defaultValue = false
+        local setting = Settings.RegisterAddOnSetting(category, variable, variable, self.db.global, type(defaultValue), name, defaultValue)
+        Settings.CreateCheckbox(category, setting, tooltip)
+    end
+    do
+        local variable = "change_bar_announce"
+        local name = L["Announce Changes"]
+        local tooltip = L["Enable announcement of reputation bar changes."]
+        local defaultValue = false
+        local setting = Settings.RegisterAddOnSetting(category, variable, variable, self.db.global, type(defaultValue), name, defaultValue)
+        Settings.CreateCheckbox(category, setting, tooltip)
+    end
+    do
+        local variable = "announce_time_left"
+        local name = L["Announce Time Left"]
+        local tooltip = L["Enable announcement of time left to next level."]
+        local defaultValue = false
+        local setting = Settings.RegisterAddOnSetting(category, variable, variable, self.db.global, type(defaultValue), name, defaultValue)
+        Settings.CreateCheckbox(category, setting, tooltip)
+    end
+    do
+        local variable = "announce_chat_frame"
+        local name = L["Announce in Chat"]
+        local tooltip = L["Change announce messages to 'WonderRep' chat window."]
+        local defaultValue = false
+        local setting = Settings.RegisterAddOnSetting(category, variable, variable, self.db.global, type(defaultValue), name, defaultValue)
+        Settings.CreateCheckbox(category, setting, tooltip)
+    end
+    Settings.RegisterAddOnCategory(category)
+end
+
