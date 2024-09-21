@@ -1,6 +1,6 @@
 ## Interface: 30403
 ## Title: WonderRep
-## Version: 2.3.0
+## Version: 2.3.1
 ## Notes: Adds all sorts of functionality for reputation changes!
 ## X-Flavor: Wrath
 ## X-Github: https://github.com/nawglan/wonder-rep
