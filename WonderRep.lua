@@ -5,6 +5,7 @@ WR = addon
 
 local timerId = nil
 local configFrame = nil
+local configCategory = nil
 
 local L = LibStub('AceLocale-3.0'):GetLocale(addonName)
 
@@ -135,12 +136,12 @@ local function GetRegionStartOfWeek()
     end
 end
 
-function addon:GetFactionLabel(standingId)
+function WR:GetFactionLabel(standingId)
     if standingId == "paragon" then return "Paragon" end
     return (SEX == 2 and _G["FACTION_STANDING_LABEL" .. standingId]) or _G["FACTION_STANDING_LABEL" .. standingId .. "_FEMALE"] or "?"
 end
 
-function addon:PLAYER_ENTERING_WORLD(event, ...)
+function WR:PLAYER_ENTERING_WORLD(event, ...)
     local isInitialLogin, isReloadingUi = ...
 
     if isInitialLogin then
@@ -160,13 +161,13 @@ function addon:PLAYER_ENTERING_WORLD(event, ...)
     self:UpdateFactions()
     self:SetBrokerText()
     if Settings.CreateCheckbox then
-        addon:ConfigFrameNew()
+        WR:ConfigFrameNew()
     else
-        addon:ConfigFrame()
+        WR:ConfigFrame()
     end
 end
 
-local function PrintHelp()
+function WR:PrintHelp()
     DEFAULT_CHAT_FRAME:AddMessage(" ")
     DEFAULT_CHAT_FRAME:AddMessage("-----------------------------------")
     DEFAULT_CHAT_FRAME:AddMessage(L["WonderRep commands help:"])
@@ -184,9 +185,9 @@ local function PrintHelp()
     DEFAULT_CHAT_FRAME:AddMessage(" ")
 end
 
-function addon:CHAT_MSG_COMBAT_FACTION_CHANGE(event, ...)
+function WR:CHAT_MSG_COMBAT_FACTION_CHANGE(event, ...)
     arg1 = ...
-    addon:UpdateFactions()
+    WR:UpdateFactions()
     -- Reputation with <REPNAME> increased by <AMOUNT>.
     local HasIndexStart, HasIndexStop, FactionName, AmountGained = string.find(arg1, L["Reputation with (.*) increased by (%d+)."])
     if HasIndexStart == nil then
@@ -212,7 +213,7 @@ function addon:CHAT_MSG_COMBAT_FACTION_CHANGE(event, ...)
         return
     end
 
-    local RepIndex, standingId, topValue, earnedValue, factionID = addon:GetRepMatch(FactionName)
+    local RepIndex, standingId, topValue, earnedValue, factionID = WR:GetRepMatch(FactionName)
     if RepIndex ~= nil then
         self.db.char.lastSaved = time()
         self.db.char.reputation[FactionName].gainedSession = self.db.char.reputation[FactionName].gainedSession + factionIncreasedBy
@@ -227,7 +228,7 @@ function addon:CHAT_MSG_COMBAT_FACTION_CHANGE(event, ...)
             -- print(currentRank, maxRank)
         end
 
-        if addon:isFriendRep(FactionName) or addon:isValdrakkenRep(FactionName) then
+        if WR:isFriendRep(FactionName) or WR:isValdrakkenRep(FactionName) then
             local tmpVal = earnedValue / 8400
             local tmpValInt = floor(tmpVal)
             nextStandingId = tmpValInt + 2
@@ -235,7 +236,7 @@ function addon:CHAT_MSG_COMBAT_FACTION_CHANGE(event, ...)
                 return
             end
             repLeftToLevel = 8400 - (8400 * (tmpVal - tmpValInt))
-        elseif addon:isBodyguardRep(FactionName) then
+        elseif WR:isBodyguardRep(FactionName) then
             local tmpVal = earnedValue / 10000
             local tmpValInt = floor(tmpVal)
             nextStandingId = tmpValInt + 2
@@ -243,87 +244,87 @@ function addon:CHAT_MSG_COMBAT_FACTION_CHANGE(event, ...)
                 return
             end
             repLeftToLevel = 10000 - (10000 * (tmpVal - tmpValInt))
-        elseif addon:isAzerothianArchivesRep(FactionName) then
-          if earnedValue < 10500 then
-            repLeftToLevel = 10500 - earnedValue
-            nextStandingId = 2
-          elseif earnedValue < 31500 then
-            repLeftToLevel = 31500 - earnedValue
-            nextStandingId = 3
-          elseif earnedValue < 64000 then
-            repLeftToLevel = 64000 - earnedValue
-            nextStandingId = 4
-          elseif earnedValue < 106000 then
-            repLeftToLevel = 106000 - earnedValue
-            nextStandingId = 5
-          else
-            return
-          end
-        elseif addon:isSoridormiRep(FactionName) then
-          if earnedValue < 7000 then
-            repLeftToLevel = 7000 - earnedValue
-            nextStandingId = 2
-          elseif earnedValue < 14000 then
-            repLeftToLevel = 14000 - earnedValue
-            nextStandingId = 3
-          elseif earnedValue < 24000 then
-            repLeftToLevel = 24000 - earnedValue
-            nextStandingId = 4
-          elseif earnedValue < 42000 then
-            repLeftToLevel = 42000 - earnedValue
-            nextStandingId = 5
-          else
-            return
-          end
-        elseif addon:isGlimmeroggRacerRep(FactionName) then
-          if earnedValue < 700 then
-            repLeftToLevel = 700 - earnedValue
-            nextStandingId = 2
-          elseif earnedValue < 1400 then
-            repLeftToLevel = 1400 - earnedValue
-            nextStandingId = 3
-          elseif earnedValue < 2100 then
-            repLeftToLevel = 2100 - earnedValue
-            nextStandingId = 4
-          elseif earnedValue < 2800 then
-            repLeftToLevel = 2800 - earnedValue
-            nextStandingId = 5
-          else
-            return
-          end
-        elseif addon:isArtisanConsortiumRep(FactionName) then
-          if earnedValue < 500 then
-            repLeftToLevel = 500 - earnedValue
-            nextStandingId = 2
-          elseif earnedValue < 2500 then
-            repLeftToLevel = 2500 - earnedValue
-            nextStandingId = 3
-          elseif earnedValue < 5500 then
-            repLeftToLevel = 5500 - earnedValue
-            nextStandingId = 4
-          elseif earnedValue < 12500 then
-            repLeftToLevel = 12500 - earnedValue
-            nextStandingId = 5
-          else
-            return
-          end
-        elseif addon:isCobaltAssemblyRep(FactionName) then
-          if earnedValue < 300 then
-            repLeftToLevel = 300 - earnedValue
-            nextStandingId = 2
-          elseif earnedValue < 1500 then
-            repLeftToLevel = 1500 - earnedValue
-            nextStandingId = 3
-          elseif earnedValue < 5100 then
-            repLeftToLevel = 5100 - earnedValue
-            nextStandingId = 4
-          elseif earnedValue < 15100 then
-            repLeftToLevel = 15100 - earnedValue
-            nextStandingId = 5
-          else
-            return
-          end
-        elseif addon:isRenownRep(factionID) then
+        elseif WR:isAzerothianArchivesRep(FactionName) then
+            if earnedValue < 10500 then
+                repLeftToLevel = 10500 - earnedValue
+                nextStandingId = 2
+            elseif earnedValue < 31500 then
+                repLeftToLevel = 31500 - earnedValue
+                nextStandingId = 3
+            elseif earnedValue < 64000 then
+                repLeftToLevel = 64000 - earnedValue
+                nextStandingId = 4
+            elseif earnedValue < 106000 then
+                repLeftToLevel = 106000 - earnedValue
+                nextStandingId = 5
+            else
+                return
+            end
+        elseif WR:isSoridormiRep(FactionName) then
+            if earnedValue < 7000 then
+                repLeftToLevel = 7000 - earnedValue
+                nextStandingId = 2
+            elseif earnedValue < 14000 then
+                repLeftToLevel = 14000 - earnedValue
+                nextStandingId = 3
+            elseif earnedValue < 24000 then
+                repLeftToLevel = 24000 - earnedValue
+                nextStandingId = 4
+            elseif earnedValue < 42000 then
+                repLeftToLevel = 42000 - earnedValue
+                nextStandingId = 5
+            else
+                return
+            end
+        elseif WR:isGlimmeroggRacerRep(FactionName) then
+            if earnedValue < 700 then
+                repLeftToLevel = 700 - earnedValue
+                nextStandingId = 2
+            elseif earnedValue < 1400 then
+                repLeftToLevel = 1400 - earnedValue
+                nextStandingId = 3
+            elseif earnedValue < 2100 then
+                repLeftToLevel = 2100 - earnedValue
+                nextStandingId = 4
+            elseif earnedValue < 2800 then
+                repLeftToLevel = 2800 - earnedValue
+                nextStandingId = 5
+            else
+                return
+            end
+        elseif WR:isArtisanConsortiumRep(FactionName) then
+            if earnedValue < 500 then
+                repLeftToLevel = 500 - earnedValue
+                nextStandingId = 2
+            elseif earnedValue < 2500 then
+                repLeftToLevel = 2500 - earnedValue
+                nextStandingId = 3
+            elseif earnedValue < 5500 then
+                repLeftToLevel = 5500 - earnedValue
+                nextStandingId = 4
+            elseif earnedValue < 12500 then
+                repLeftToLevel = 12500 - earnedValue
+                nextStandingId = 5
+            else
+                return
+            end
+        elseif WR:isCobaltAssemblyRep(FactionName) then
+            if earnedValue < 300 then
+                repLeftToLevel = 300 - earnedValue
+                nextStandingId = 2
+            elseif earnedValue < 1500 then
+                repLeftToLevel = 1500 - earnedValue
+                nextStandingId = 3
+            elseif earnedValue < 5100 then
+                repLeftToLevel = 5100 - earnedValue
+                nextStandingId = 4
+            elseif earnedValue < 15100 then
+                repLeftToLevel = 15100 - earnedValue
+                nextStandingId = 5
+            else
+                return
+            end
+        elseif WR:isRenownRep(factionID) then
             data = C_MajorFactions.GetMajorFactionData(factionID)
             earnedValue = data['renownReputationEarned']
             nextStandingId = data['renownLevel'] + 20 -- shortcut
@@ -336,7 +337,7 @@ function addon:CHAT_MSG_COMBAT_FACTION_CHANGE(event, ...)
             repLeftToLevel = topValue - earnedValue
         end
 
-        local RepNextLevelName = addon:GetNextRepLevelName(FactionName, nextStandingId)
+        local RepNextLevelName = WR:GetNextRepLevelName(FactionName, nextStandingId)
 
         local paraValue, paraThreshold, paraQuestId, paraRewardPending = C_Reputation.GetFactionParagonInfo(factionID)
 
@@ -353,9 +354,9 @@ function addon:CHAT_MSG_COMBAT_FACTION_CHANGE(event, ...)
 
         if self.db.global.announce_left == true and self.db.global.announce_time_left == true then
             if self.db.global.announce_chat_frame == true then
-                self:GetChatFrame(string.format("WonderRep: " .. L['REPSTRFULL'], repLeftToLevel, FactionName, RepNextLevelName, KillsToNext, self.db.char.reputation[FactionName].gainedDay, addon:TimeTextMed(estimatedTimeTolevel), RepNextLevelName))
+                self:GetChatFrame(string.format("WonderRep: " .. L['REPSTRFULL'], repLeftToLevel, FactionName, RepNextLevelName, KillsToNext, self.db.char.reputation[FactionName].gainedDay, WR:TimeTextMed(estimatedTimeTolevel), RepNextLevelName))
             else
-                print(string.format("WonderRep: " .. L['REPSTRFULL'], repLeftToLevel, FactionName, RepNextLevelName, KillsToNext, self.db.char.reputation[FactionName].gainedDay, addon:TimeTextMed(estimatedTimeTolevel), RepNextLevelName))
+                print(string.format("WonderRep: " .. L['REPSTRFULL'], repLeftToLevel, FactionName, RepNextLevelName, KillsToNext, self.db.char.reputation[FactionName].gainedDay, WR:TimeTextMed(estimatedTimeTolevel), RepNextLevelName))
             end
         end        
 
@@ -367,36 +368,36 @@ function addon:CHAT_MSG_COMBAT_FACTION_CHANGE(event, ...)
     end
 end
 
-function addon:GetNextRepLevelName(FactionName, standingId)
-  local RepNextLevelName = ""
+function WR:GetNextRepLevelName(FactionName, standingId)
+    local RepNextLevelName = ""
 
-  if addon:isFriendRep(FactionName) and standingId <= 6 then
-    RepNextLevelName = unitsFriends[standingId]
-  elseif addon:isBodyguardRep(FactionName) and standingId <= 3 then
-    RepNextLevelName = unitsBodyguards[standingId]
-  elseif addon:isAzerothianArchivesRep(FactionName) and standingId <= 5 then
-    RepNextLevelName = unitsAzerothianArchives[standingId]
-  elseif addon:isSoridormiRep(FactionName) and standingId <= 5 then
-    RepNextLevelName = unitsSoridormi[standingId]
-  elseif addon:isGlimmeroggRacerRep(FactionName) and standingId <= 5 then
-    RepNextLevelName = unitsSoridormi[standingId]
-  elseif addon:isArtisanConsortiumRep(FactionName) and standingId <= 5 then
-    RepNextLevelName = unitsSoridormi[standingId]
-  elseif addon:isCobaltAssemblyRep(FactionName) and standingId <= 5 then
-    RepNextLevelName = unitsCobaltAssembly[standingId]
-  elseif addon:isValdrakkenRep(FactionName) and standingId <= 6 then
-    RepNextLevelName = unitsValdkrakkenAccord[standingId]
-  elseif (standingId <= 9) then
-    RepNextLevelName = repLevels[standingId]
-  elseif (standingId >= 20) then
-    local new = standingId - 19
-    RepNextLevelName = L["Renown"] .. " " .. new
-  end
+    if WR:isFriendRep(FactionName) and standingId <= 6 then
+        RepNextLevelName = unitsFriends[standingId]
+    elseif WR:isBodyguardRep(FactionName) and standingId <= 3 then
+        RepNextLevelName = unitsBodyguards[standingId]
+    elseif WR:isAzerothianArchivesRep(FactionName) and standingId <= 5 then
+        RepNextLevelName = unitsAzerothianArchives[standingId]
+    elseif WR:isSoridormiRep(FactionName) and standingId <= 5 then
+        RepNextLevelName = unitsSoridormi[standingId]
+    elseif WR:isGlimmeroggRacerRep(FactionName) and standingId <= 5 then
+        RepNextLevelName = unitsSoridormi[standingId]
+    elseif WR:isArtisanConsortiumRep(FactionName) and standingId <= 5 then
+        RepNextLevelName = unitsSoridormi[standingId]
+    elseif WR:isCobaltAssemblyRep(FactionName) and standingId <= 5 then
+        RepNextLevelName = unitsCobaltAssembly[standingId]
+    elseif WR:isValdrakkenRep(FactionName) and standingId <= 6 then
+        RepNextLevelName = unitsValdkrakkenAccord[standingId]
+    elseif (standingId <= 9) then
+        RepNextLevelName = repLevels[standingId]
+    elseif (standingId >= 20) then
+        local new = standingId - 19
+        RepNextLevelName = L["Renown"] .. " " .. new
+    end
 
-  return RepNextLevelName
+    return RepNextLevelName
 end
 
-function addon:isFriendRep(FactionName)
+function WR:isFriendRep(FactionName)
     local FriendRep = {}
     table.insert(FriendRep, L["Farmer Fung"])
     table.insert(FriendRep, L["Chee Chee"])
@@ -413,7 +414,7 @@ function addon:isFriendRep(FactionName)
     return tContains(FriendRep, FactionName)
 end
 
-function addon:isBodyguardRep(FactionName)
+function WR:isBodyguardRep(FactionName)
     local BodyguardRep = {}
     table.insert(BodyguardRep, L["Leorajh"])
     table.insert(BodyguardRep, L["Tormmok"])
@@ -426,7 +427,7 @@ function addon:isBodyguardRep(FactionName)
     return tContains(BodyguardRep, FactionName)
 end
 
-function addon:isRenownRep(factionID)
+function WR:isRenownRep(factionID)
     local RenownRep = {}
     table.insert(RenownRep, 2507)
     table.insert(RenownRep, 2510)
@@ -436,42 +437,42 @@ function addon:isRenownRep(factionID)
     return tContains(RenownRep, factionID)
 end
 
-function addon:isAzerothianArchivesRep(FactionName)
+function WR:isAzerothianArchivesRep(FactionName)
     local AzerothianRep = {}
     table.insert(AzerothianRep, L["Azerothian Archives"])
 
     return tContains(AzerothianRep, FactionName)
 end
 
-function addon:isSoridormiRep(FactionName)
+function WR:isSoridormiRep(FactionName)
     local SoridormiRep = {}
     table.insert(SoridormiRep, L["Soridormi"])
 
     return tContains(SoridormiRep, FactionName)
 end
 
-function addon:isGlimmeroggRacerRep(FactionName)
+function WR:isGlimmeroggRacerRep(FactionName)
     local GlimmeroggRep = {}
     table.insert(GlimmeroggRep, L["Glimmerogg Racer"])
 
     return tContains(GlimmeroggRep, FactionName)
 end
 
-function addon:isArtisanConsortiumRep(FactionName)
+function WR:isArtisanConsortiumRep(FactionName)
     local ArtisanRep = {}
     table.insert(ArtisanRep, L["Artisan's Consortium - Dragon Isles Branch"])
 
     return tContains(ArtisanRep, FactionName)
 end
 
-function addon:isCobaltAssemblyRep(FactionName)
+function WR:isCobaltAssemblyRep(FactionName)
     local CobaltRep = {}
     table.insert(CobaltRep, L["Cobalt Assembly"])
 
     return tContains(CobaltRep, FactionName)
 end
 
-function addon:isValdrakkenRep(FactionName)
+function WR:isValdrakkenRep(FactionName)
     local ValdrakkenRep = {}
     table.insert(ValdrakkenRep, L["Wrathion"])
     table.insert(ValdrakkenRep, L["Sabellian"])
@@ -479,7 +480,7 @@ function addon:isValdrakkenRep(FactionName)
     return tContains(ValdrakkenRep, FactionName)
 end
 
-function addon:CHAT_MSG_SYSTEM(event, ...)
+function WR:CHAT_MSG_SYSTEM(event, ...)
     local arg1 = ...
     if self.db.char.bufferedRepGain ~= "" then
         arg1 = self.db.char.bufferedRepGain
@@ -488,19 +489,19 @@ function addon:CHAT_MSG_SYSTEM(event, ...)
     -- Reputation with <REPNAME> increased by <AMOUNT>.
     local HasIndexStart, HasIndexStop, FactionName, AmountGained = string.find(arg1, L["Reputation with (.*) increased by (%d+)."])
     if HasIndexStart == nil then
-      -- Try the REPMATCHSTR2
-      HasIndexStart, HasIndexStop, FactionName, AmountGained = string.find(arg1, L["(.+) judges .+ %[(%d+) reputation gained%.%]"])
-      if HasIndexStart == nil then
-        -- still not found, probably not the string we want
-        return
-      else
-        -- reset buffer
-        self.db.char.BufferedRepGain = ""
-      end
+        -- Try the REPMATCHSTR2
+        HasIndexStart, HasIndexStop, FactionName, AmountGained = string.find(arg1, L["(.+) judges .+ %[(%d+) reputation gained%.%]"])
+        if HasIndexStart == nil then
+            -- still not found, probably not the string we want
+            return
+        else
+            -- reset buffer
+            self.db.char.BufferedRepGain = ""
+        end
     end
 end
 
-function addon:GetNumFactions()
+function WR:GetNumFactions()
     if C_Reputation.GetNumFactions then
         return C_Reputation.GetNumFactions()
     else
@@ -508,25 +509,24 @@ function addon:GetNumFactions()
     end
 end
 
-function addon:GetRepMatch(FactionName)
+function WR:GetRepMatch(FactionName)
     local factionIndex = 1
     local lastFactionName
     repeat
-        local name, description, standingId, bottomValue, topValue, earnedValue, atWarWith,
-            canToggleAtWar, isHeader, isCollapsed, hasRep, isWatched, isChild, factionID = addon:GetFactionInfo(factionIndex)
-        if name == lastFactionName then break end
+        local name, description, standingId, bottomValue, topValue, earnedValue, atWarWith, canToggleAtWar, isHeader, isCollapsed, hasRep, isWatched, isChild, factionID = WR:GetFactionInfo(factionIndex)
+        if name == nil or name == lastFactionName then break end
         lastFactionName = name
         if name == FactionName then
             return factionIndex, standingId, topValue, earnedValue, factionID
         end
 
         factionIndex = factionIndex + 1
-    until factionIndex > addon:GetNumFactions()
+    until factionIndex > WR:GetNumFactions()
 end
 
-function addon:ChangeWatched()
+function WR:ChangeWatched()
     if self.db.global.change_bar then
-        local watchedName = addon:GetWatchedFactionInfo()
+        local watchedName = WR:GetWatchedFactionInfo()
         if self.db.char.lastRepGained ~= watchedName then
             SetWatchedFactionIndex(self.db.char.lastRepGainedIndex)
             if self.db.global.change_bar_announce == true then
@@ -536,14 +536,14 @@ function addon:ChangeWatched()
     end
 end
 
-function addon:UpdateFactions()
+function WR:UpdateFactions()
     local factionIndex = 1
     local lastFactionName = ""
 
     -- update known factions
     repeat
-        local name = addon:GetFactionInfo(factionIndex)
-        if name == lastFactionName then break end
+        local name = WR:GetFactionInfo(factionIndex)
+        if name == lastFactionName or name == "" then break end
         lastFactionName = name
         if name then
             if not self.db.char.reputation[name] then
@@ -558,10 +558,10 @@ function addon:UpdateFactions()
             end
         end
         factionIndex = factionIndex + 1
-    until factionIndex > addon:GetNumFactions()
+    until factionIndex > WR:GetNumFactions()
 end
 
-function addon:GetChatFrame(msg)
+function WR:GetChatFrame(msg)
     i = 0
     repeat
         i = i+1
@@ -575,11 +575,20 @@ function addon:GetChatFrame(msg)
     until i > 100
 end
 
+function WR:OpenConfig()
+    if Settings.OpenToCategory then
+        Settings.OpenToCategory(configCategory:GetID())
+    else
+        InterfaceOptionsFrame_Show()
+        InterfaceOptionsFrame_OpenToCategory(configFrame)
+    end
+end
+
 function WonderRep(msg)
     if msg then
         if msg == "" then
-            PrintHelp()
-            InterfaceOptionsFrame_OpenToCategory(configFrame)
+            WR:PrintHelp()
+            WR:OpenConfig()
         elseif msg == "ct" then
             i = 0
             repeat
@@ -593,9 +602,9 @@ function WonderRep(msg)
                 end
             until i > 100
         elseif msg == "options" then
-            InterfaceOptionsFrame_OpenToCategory(configFrame)
+            WR:OpenConfig()
         elseif msg == "help" then
-            PrintHelp()
+            WR:PrintHelp()
         end
     end
 end
@@ -608,7 +617,7 @@ local function GetTipAnchor(frame)
     return vhalf..hhalf, frame, (vhalf == "TOP" and "BOTTOM" or "TOP")..hhalf
 end
 
-function addon:SetTooltipContents()
+function WR:SetTooltipContents()
     WRTip:Clear()
 
     local line
@@ -635,7 +644,7 @@ function addon:SetTooltipContents()
     local lastFactionName = ""
     repeat
         local name, description, standingId, bottomValue, topValue, earnedValue, atWarWith,
-            canToggleAtWar, isHeader, isCollapsed, hasRep, isWatched, isChild, factionID = addon:GetFactionInfo(factionIndex)
+            canToggleAtWar, isHeader, isCollapsed, hasRep, isWatched, isChild, factionID = WR:GetFactionInfo(factionIndex)
         standingName = repLevels[standingId]
         if factionID == nil then
             break
@@ -652,7 +661,7 @@ function addon:SetTooltipContents()
             levelTop = paraThreshold
             levelEarned = paraValue
             repLeftToLevel = paraThreshold - paraValue
-        elseif addon:isRenownRep(factionID) then
+        elseif WR:isRenownRep(factionID) then
             data = C_MajorFactions.GetMajorFactionData(factionID)
             levelEarned = data['renownReputationEarned']
             nextStandingId = data['renownLevel']
@@ -684,18 +693,18 @@ function addon:SetTooltipContents()
             WRTip:SetCell(line, 1, name.."  ")
             WRTip:SetCell(line, 2, " "..standingName.." ")
             WRTip:SetCell(line, 3, " "..roundedPercent.."% ")
-            WRTip:SetCell(line, 4, " "..addon:TimeTextMed(estimatedTimeTolevel).." ")
+            WRTip:SetCell(line, 4, " "..WR:TimeTextMed(estimatedTimeTolevel).." ")
             WRTip:SetCell(line, 5, " "..self.db.char.reputation[name].gainedSession.." ")
             WRTip:SetCell(line, 6, " "..self.db.char.reputation[name].gainedDay.." ")
             WRTip:SetCell(line, 7, " "..self.db.char.reputation[name].gainedWeek.." ")
         end
 
         factionIndex = factionIndex + 1
-    until factionIndex > addon:GetNumFactions()
+    until factionIndex > WR:GetNumFactions()
     WRTip:Show()
 end
 
-function addon:TimeTextShort(s)
+function WR:TimeTextShort(s)
     if math.huge == s then
         return L["Infinite"]
     end
@@ -719,7 +728,7 @@ function addon:TimeTextShort(s)
     return timeText
 end
 
-function addon:TimeTextMed(s)
+function WR:TimeTextMed(s)
 
     if math.huge == s then
         return L["Infinite"]
@@ -745,11 +754,11 @@ function addon:TimeTextMed(s)
 end
 
 -- Open options on click, for now
-function addon:DataObjClick(button)
-    InterfaceOptionsFrame_OpenToCategory(configFrame)
+function WR:DataObjClick(button)
+    WR:OpenConfig()
 end
 
-function addon:DataObjEnter(LDBFrame)
+function WR:DataObjEnter(LDBFrame)
     if WRTip ~= nil then
         if libQTip:IsAcquired("WonderRepTip") then WRTip:Clear() end
         WRTip:Hide()
@@ -759,17 +768,17 @@ function addon:DataObjEnter(LDBFrame)
 
     WRTip = libQTip:Acquire("WonderRepTip", 7, "LEFT", "CENTER", "CENTER", "CENTER", "CENTER", "CENTER", "CENTER")
     WRTip:SmartAnchorTo(LDBFrame)
-    addon:SetTooltipContents()
+    WR:SetTooltipContents()
 end
 
-function addon:SessionTimer()
+function WR:SessionTimer()
     self.db.char.sessionTime = self.db.char.sessionTime + 1
     if ((self.db.char.sessionTime % 5) == 0) then
         self:SetBrokerText()
     end
 end
 
-function addon:CheckStatsResets()
+function WR:CheckStatsResets()
     local now = date('*t')
 
 
@@ -827,101 +836,106 @@ function addon:CheckStatsResets()
     self:ScheduleTimer('CheckStatsResets', next_check)
 end
 
-function addon:GetWatchedFactionInfo()
+function WR:GetWatchedFactionInfo()
     if C_Reputation.GetWatchedFactionData then
         local data = C_Reputation.GetWatchedFactionData()
-        return data.name, data.reaction, data.currentReactionThreshold, data.nextReactionThreshold, data.currentStanding, data.factionID
+        if data then
+          return data.name, data.reaction, data.currentReactionThreshold, data.nextReactionThreshold, data.currentStanding, data.factionID
+        end
     else
       return GetWatchedFactionInfo()
     end   
 end
 
-function addon:GetFactionInfo(factionIndex)
+function WR:GetFactionInfo(factionIndex)
     if C_Reputation.GetFactionDataByIndex then
         local data = C_Reputation.GetFactionDataByIndex(factionIndex)
-        return data.name, data.description, data.reaction, data.currentReactionThreshold, data.nextReactionThreshold, data.currentStanding, data.atWarWith, data.canToggleAtWar, data.isHeader, data.isCollapsed, data.isHeaderWithRep, data.isWatched, data.isChild, data.factionID
+        if data then
+          return data.name, data.description, data.reaction, data.currentReactionThreshold, data.nextReactionThreshold, data.currentStanding, data.atWarWith, data.canToggleAtWar, data.isHeader, data.isCollapsed, data.isHeaderWithRep, data.isWatched, data.isChild, data.factionID
+        end
     else
       return GetFactionInfo(factionIndex)
     end
 end
 
 
-function addon:SetBrokerText()
+function WR:SetBrokerText()
     local dotext
     self.dataobj.icon = azeriteItemIcon
     
-    local name, standingID, barMin, barMax, barValue, factionID = addon:GetWatchedFactionInfo()
-    local RepIndex, standingId, topValue, earnedValue = addon:GetRepMatch(name)
-    local paraValue, paraThreshold, paraQuestId, paraRewardPending = C_Reputation.GetFactionParagonInfo(factionID)
-    local repLevelName = repLevels[standingID]
+    local name, standingID, barMin, barMax, barValue, factionID = WR:GetWatchedFactionInfo()
     if name == nil then
         dotext = L["No Watched Faction"]
-    elseif C_Reputation.IsFactionParagon(factionID) then
-        while (paraValue > paraThreshold) do
-            paraValue = paraValue - paraThreshold
-        end
-
-        if self.db.global.display_name == true and standingID ~= nil then
-            dotext = name..": "
-        else
-            dotext = ""
-        end
-
-        if self.db.global.display_level == true then
-            dotext = dotext.."Paragon: "
-        end
-
-        if self.db.global.display_percent == true then
-            local percent = (paraValue / paraThreshold) * 100
-            local roundedPercent = percent + 0.5 - (percent + 0.5) % 1
-            dotext = dotext..roundedPercent.."%: "
-        end
-
-        if self.db.global.display_time == true and self.db.char.reputation[name] ~= nil then
-            local repLeftToLevel = paraThreshold - paraValue
-            local estimatedTimeTolevel = repLeftToLevel / (self.db.char.reputation[name].gainedSession / self.db.char.sessionTime)
-            dotext = dotext..addon:TimeTextMed(estimatedTimeTolevel)
-        end
-    elseif (standingID == 8) then
-        dotext = name..": "..L["maxed, pick another faction."]
     else
-        if addon:isRenownRep(factionID) then
-            data = C_MajorFactions.GetMajorFactionData(factionID)
-            barValue = data['renownReputationEarned']
-            standingID = data['renownLevel']
-            barMax = data['renownLevelThreshold']
-            repLevelName = L["Renown"].." "..standingID
-            barMin = 0
-        end
-        local trueMax = barMax - barMin
-        local trueValue = barValue - barMin
+        local repLevelName = repLevels[standingID]
+        local paraValue, paraThreshold, paraQuestId, paraRewardPending = C_Reputation.GetFactionParagonInfo(factionID)
+        if C_Reputation.IsFactionParagon(factionID) then
+            while (paraValue > paraThreshold) do
+                paraValue = paraValue - paraThreshold
+            end
 
-        if self.db.global.display_name == true and standingID ~= nil then
-            dotext = name..": "
+            if self.db.global.display_name == true and standingID ~= nil then
+                dotext = name..": "
+            else
+                dotext = ""
+            end
+
+            if self.db.global.display_level == true then
+                dotext = dotext.."Paragon: "
+            end
+
+            if self.db.global.display_percent == true then
+                local percent = (paraValue / paraThreshold) * 100
+                local roundedPercent = percent + 0.5 - (percent + 0.5) % 1
+                dotext = dotext..roundedPercent.."%: "
+            end
+
+            if self.db.global.display_time == true and self.db.char.reputation[name] ~= nil then
+                local repLeftToLevel = paraThreshold - paraValue
+                local estimatedTimeTolevel = repLeftToLevel / (self.db.char.reputation[name].gainedSession / self.db.char.sessionTime)
+                dotext = dotext..WR:TimeTextMed(estimatedTimeTolevel)
+            end
+        elseif (standingID == 8) then
+            dotext = name..": "..L["maxed, pick another faction."]
         else
-            dotext = ""
-        end
+            if WR:isRenownRep(factionID) then
+                data = C_MajorFactions.GetMajorFactionData(factionID)
+                barValue = data['renownReputationEarned']
+                standingID = data['renownLevel']
+                barMax = data['renownLevelThreshold']
+                repLevelName = L["Renown"].." "..standingID
+                barMin = 0
+            end
+            local trueMax = barMax - barMin
+            local trueValue = barValue - barMin
 
-        if self.db.global.display_level == true then
-            dotext = dotext..repLevelName..": "
-        end
+            if self.db.global.display_name == true and standingID ~= nil then
+                dotext = name..": "
+            else
+                dotext = ""
+            end
 
-        if self.db.global.display_percent == true then
-            local percent = (trueValue / trueMax) * 100
-            local roundedPercent = percent + 0.5 - (percent + 0.5) % 1
-            dotext = dotext..roundedPercent.."%: "
-        end
+            if self.db.global.display_level == true then
+                dotext = dotext..repLevelName..": "
+            end
 
-        if self.db.global.display_time == true and self.db.char.reputation[name] ~= nil then
-            local repLeftToLevel = trueMax - trueValue
-            local estimatedTimeTolevel = repLeftToLevel / (self.db.char.reputation[name].gainedSession / self.db.char.sessionTime)
-            dotext = dotext..addon:TimeTextMed(estimatedTimeTolevel)
+            if self.db.global.display_percent == true then
+                local percent = (trueValue / trueMax) * 100
+                local roundedPercent = percent + 0.5 - (percent + 0.5) % 1
+                dotext = dotext..roundedPercent.."%: "
+            end
+
+            if self.db.global.display_time == true and self.db.char.reputation[name] ~= nil then
+                local repLeftToLevel = trueMax - trueValue
+                local estimatedTimeTolevel = repLeftToLevel / (self.db.char.reputation[name].gainedSession / self.db.char.sessionTime)
+                dotext = dotext..WR:TimeTextMed(estimatedTimeTolevel)
+            end
         end
+        self.dataobj.text = ' '..dotext..' '
     end
-    self.dataobj.text = ' '..dotext..' '
 end
 
-function addon:ConfigFrame()
+function WR:ConfigFrame()
     local menuPad = 16
     local linePad = 30
 
@@ -993,17 +1007,17 @@ function addon:ConfigFrame()
 end
 
 -- Startup Events --
-function addon:OnInitialize()
+function WR:OnInitialize()
     self.dataobj = LibStub("LibDataBroker-1.1"):NewDataObject(addonName, {
         type = "data source",
         text = " ",
         icon = azeriteItemIcon,
-        OnClick = function(f,b) addon:DataObjClick(b) end,
+        OnClick = function(f,b) WR:DataObjClick(b) end,
         OnLeave = function() 
             libQTip:Release(WRTip)
             WRTip = nil 
         end,
-        OnEnter = function(f) addon:DataObjEnter(f) end,
+        OnEnter = function(f) WR:DataObjEnter(f) end,
     })
 
     self.db = LibStub("AceDB-3.0"):New("WonderRep_DB", sv_defaults, true)
@@ -1019,8 +1033,9 @@ function addon:OnInitialize()
     if IsLoggedIn() then self:PLAYER_ENTERING_WORLD() else self:RegisterEvent("PLAYER_ENTERING_WORLD") end
 end
 
-function addon:ConfigFrameNew()
-    local category = Settings.RegisterVerticalLayoutCategory("WonderRep")
+function WR:ConfigFrameNew()
+    local category, layout = Settings.RegisterVerticalLayoutCategory("WonderRep")
+    configCategory = category
 
     do
         local variable = "change_bar"
